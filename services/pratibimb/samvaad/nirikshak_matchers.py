@@ -4,7 +4,11 @@ from __future__ import annotations
 from typing import Any, Protocol
 
 from services.pratibimb.samvaad.matcher_spec import COMBINATOR, REQUIRED_STEPS
-from services.pratibimb.samvaad.runtime import evaluate_action_sequence, evaluate_empathy_and
+from services.pratibimb.samvaad.runtime import (
+    evaluate_action_sequence,
+    evaluate_empathy_and,
+    validate_matcher_params,
+)
 
 
 class SamvaadEvalContext(Protocol):
@@ -17,6 +21,7 @@ def _ctx(evaluator: SamvaadEvalContext) -> dict[str, Any]:
 
 def m_action_sequence(evaluator: SamvaadEvalContext, hit: Any) -> tuple[bool, dict]:
     params = hit.params or {}
+    validate_matcher_params(params)
     matcher = getattr(hit, "matcher", None) or {}
     if isinstance(matcher, dict):
         required = matcher.get("required") or params.get("required") or []
@@ -34,6 +39,9 @@ def m_action_sequence(evaluator: SamvaadEvalContext, hit: Any) -> tuple[bool, di
             window_ms=params.get("empathy_cue_window_ms"),
             interruption_timestamps_ms=_ctx(evaluator).get("interruption_timestamps_ms"),
             cue_onset_ms=int(_ctx(evaluator).get("cue_onset_ms", 0)),
+            step_timestamps_ms=_ctx(evaluator).get("step_timestamps_ms"),
+            cue_explicit=bool(_ctx(evaluator).get("cue_explicit", True)),
+            allow_implicit_cue=bool(params.get("allow_implicit_cue", False)),
         )
 
     observed = list(_ctx(evaluator).get("observed_steps") or [])
@@ -80,17 +88,24 @@ def m_visual_frame_check(evaluator: SamvaadEvalContext, hit: Any) -> tuple[bool,
 
 def m_debrief_self_report_structured(evaluator: SamvaadEvalContext, hit: Any) -> tuple[bool, dict]:
     params = hit.params or {}
+    validate_matcher_params(params)
     utterances = list(_ctx(evaluator).get("debrief_utterances") or [])
     techniques = params.get("techniques_referenced") or []
     reject = set(params.get("reject_vague") or [])
-    min_occ = int(params.get("min_occurrences", 1))
+    min_occ = int(
+        params.get("min_occurrences_per_turn", params.get("min_occurrences", 1))
+    )
     hits = [
         u
         for u in utterances
         if u not in reject and any(t in u.lower().replace(" ", "_") for t in techniques)
     ]
     matched = len(hits) >= min_occ
-    return matched, {"techniques": techniques, "hits": hits}
+    return matched, {
+        "techniques": techniques,
+        "hits": hits,
+        "min_occurrences_per_turn": min_occ,
+    }
 
 
 SAMVAAD_MATCHERS: dict[str, Any] = {

@@ -21,6 +21,9 @@ class FormativeEvidenceRecord:
 
 def clear_formative_store() -> None:
     _STORE.clear()
+    from services.pratibimb.samvaad.formative_projector import clear_formative_ledger
+
+    clear_formative_ledger()
 
 
 def formative_store() -> list[dict[str, Any]]:
@@ -44,4 +47,9 @@ def capture_formative(payload: dict[str, Any]) -> FormativeEvidenceRecord:
             "captured_at_utc": rec.captured_at_utc.isoformat(),
         }
     )
+    provenance = {"source_context", "submitted_by", "session_anchor", "matcher_parameters"}
+    if provenance <= set(payload):
+        from services.pratibimb.samvaad.formative_projector import insert_formative_evidence
+
+        insert_formative_evidence(rec)
     return rec

@@ -46,6 +46,7 @@ markers = [
     "samvaad_acceptance: SAMVAAD.a enforcement + reference rubrics + matcher spec suite",
     "samvaad_b_acceptance: SAMVAAD.b rubric corpus + summative capture + runtime stubs",
     "samvaad_c_acceptance: SAMVAAD.c Nirikshak merge + ledger summative projector + verify route",
+    "samvaad_d_acceptance: SAMVAAD.d matcher params + formative capture + runtime instrumentation",
 ]
 
 [tool.ruff]

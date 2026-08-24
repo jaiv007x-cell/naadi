@@ -8,12 +8,15 @@
 
 ## Lift conditions (all required)
 
-| # | Condition | Verification |
-|---|-----------|--------------|
-| 1 | **Three independent hospital partners** onboarded for structured patient-reported capture | Named partner IDs in ops record; not single-site duplication |
-| 2 | **≥ 200 events** collected under structured instrument (post-procedure / teach-back survey class) | Count from `samvaad_formative_evidence` (022) with required `source_context` + `submitted_by` |
-| 3 | **≥ 0.80 inter-rater reliability** on coded empathy/communication items across partner sites | External analysis artifact linked in Framework pin PR |
-| 4 | **External clinical reviewer signoff** — attestation that evidence quality supports summative use | Signed review doc referenced in Framework pin PR |
+| # | Condition | Why load-bearing | Verification |
+|---|-----------|------------------|--------------|
+| 1 | **Three independent hospital partners** onboarded for structured patient-reported capture | Cross-site generalization; single-partner reliability does not establish that the matcher transfers | Named partner IDs in ops record; not single-site duplication |
+| 2 | **≥ 200 events** collected under structured instrument (post-procedure / teach-back survey class) | Statistical power for a stable reliability estimate | Count from `samvaad_formative_evidence` (022) with required provenance |
+| 3 | **≥ 0.80 inter-rater reliability** on coded empathy/communication items across partner sites | Minimum reliability threshold for the proposed evidence use | External analysis artifact linked in Framework pin PR |
+| 4 | **External clinical reviewer signoff** — attestation that evidence quality supports summative use | Independent clinical/compliance gate; volume and IRR cannot substitute for it | Signed review doc referenced in Framework pin PR |
+
+The four conditions are an AND gate. Surplus on one axis cannot compensate for a
+missing condition on another.
 
 ---
 

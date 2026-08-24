@@ -1,0 +1,154 @@
+version: "3.9"
+
+services:
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 5
+
+  vllm:
+    profiles: ["gpu"]
+    image: vllm/vllm-openai:latest
+    command: >
+      --model ${VLLM_MODEL:-pratibimb/patient-llama3.1-8b-lora}
+      --dtype float16
+      --max-model-len 8192
+      --gpu-memory-utilization 0.85
+    environment:
+      - HUGGING_FACE_HUB_TOKEN=${HF_TOKEN:-}
+    ports: ["8001:8000"]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
+
+  dhaara:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: uvicorn services.dhaara.app.main:app --host 0.0.0.0 --port 8200
+    ports: ["8200:8200"]
+    env_file: .env
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+    volumes: [".:/app"]
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  pratibimb:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: uvicorn services.pratibimb.app.main:app --host 0.0.0.0 --port 8100 --reload
+    ports: ["8100:8100"]
+    env_file: .env
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - VLLM_URL=http://vllm:8000/v1
+      - VLLM_MODEL=pratibimb/patient-llama3.1-8b-lora
+      - ASR_MODEL=large-v3
+      - ASR_DEVICE=cuda
+      - ASR_COMPUTE=float16
+      - TTS_MODEL=tts_models/multilingual/multi-dataset/xtts_v2
+      - TTS_DEVICE=cuda
+      - DHAARA_URL=http://dhaara:8200
+      - DHAARA_STREAM_IN=pratibimb.events.in
+      - DHAARA_STREAM_OUT=pratibimb.events.out
+      - DHAARA_GROUP=pratibimb-workers
+    depends_on:
+      redis:
+        condition: service_healthy
+      dhaara:
+        condition: service_started
+    volumes:
+      - .:/app
+      - hf-cache:/root/.cache/huggingface
+      - tts-cache:/root/.local/share/tts
+      - speaker-refs:/app/speaker_refs
+
+  pratibimb-worker:
+    profiles: ["gpu"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python -c "from services.pratibimb.app.worker import main; main()"
+    env_file: .env
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - VLLM_URL=http://vllm:8000/v1
+      - VLLM_MODEL=pratibimb/patient-llama3.1-8b-lora
+      - ASR_MODEL=large-v3
+      - ASR_DEVICE=cuda
+      - ASR_COMPUTE=float16
+      - TTS_MODEL=tts_models/multilingual/multi-dataset/xtts_v2
+      - TTS_DEVICE=cuda
+      - DHAARA_STREAM_IN=pratibimb.events.in
+      - DHAARA_STREAM_OUT=pratibimb.events.out
+      - DHAARA_GROUP=pratibimb-workers
+      - SPEAKER_REF_DIR=/app/speaker_refs
+    depends_on:
+      redis:
+        condition: service_healthy
+      vllm:
+        condition: service_started
+    volumes:
+      - .:/app
+      - hf-cache:/root/.cache/huggingface
+      - tts-cache:/root/.local/share/tts
+      - speaker-refs:/app/speaker_refs
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
+
+  gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: uvicorn services.gateway.app.main:app --host 0.0.0.0 --port 8080 --workers 2
+    ports: ["8080:8080"]
+    env_file: .env
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - PRATIBIMB_URL=http://pratibimb:8100
+      - DHAARA_URL=http://dhaara:8200
+      - DHAARA_STREAM_IN=pratibimb.events.in
+      - DHAARA_STREAM_OUT=pratibimb.events.out
+      - DHAARA_GROUP=pratibimb-gateway
+    volumes: [".:/app"]
+    depends_on:
+      - pratibimb
+      - redis
+
+  postgres:
+    profiles: ["db"]
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: pratibimb
+      POSTGRES_PASSWORD: pratibimb
+      POSTGRES_DB: pratibimb
+    volumes: [pg-data:/var/lib/postgresql/data]
+    ports: ["5432:5432"]
+
+  minio:
+    profiles: ["storage"]
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: pratibimb
+      MINIO_ROOT_PASSWORD: pratibimb-secret
+    ports: ["9000:9000", "9001:9001"]
+    volumes: [minio-data:/data]
+
+volumes:
+  hf-cache: {}
+  tts-cache: {}
+  speaker-refs: {}
+  pg-data: {}
+  minio-data: {}

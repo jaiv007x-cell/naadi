@@ -16,7 +16,7 @@ from services.pratibimb.auth.context import AuthContext
 from services.pratibimb.credentials.sign import DEFAULT_ISSUER_KEY_ID
 from services.pratibimb.credentials.status_list import (
     DEFAULT_LIST_TTL,
-    STATUS_LIST_SCHEMA_V1,
+    STATUS_LIST_SCHEMA_V2,
     build_status_list_envelope,
     new_snapshot_id,
 )
@@ -77,7 +77,8 @@ class CredentialStatusService:
                 by_id[row.credential_id] = row
         entries = [
             {
-                "credential_id": r.credential_id,
+                "identifier_kind": "credential",
+                "identifier_id": r.credential_id,
                 "revoked_at": r.revoked_at.isoformat() if r.revoked_at else None,
             }
             for r in by_id.values()
@@ -89,6 +90,7 @@ class CredentialStatusService:
             key_id=self._issuer_key_id,
             signed_at=signed_at,
             valid_until=valid_until,
+            schema_version=STATUS_LIST_SCHEMA_V2,
         )
         for r in by_id.values():
             existing = session.get(
@@ -108,7 +110,7 @@ class CredentialStatusService:
         snap = CredentialStatusListSnapshotRow(
             snapshot_id=new_snapshot_id(),
             tenant_id=tenant_id,
-            status_list_schema_version=STATUS_LIST_SCHEMA_V1,
+            status_list_schema_version=STATUS_LIST_SCHEMA_V2,
             key_id=self._issuer_key_id,
             signed_at=signed_at,
             valid_until=valid_until,

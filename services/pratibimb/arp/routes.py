@@ -20,6 +20,10 @@ from services.pratibimb.arp.service import (
     TranscriptDigestMismatchError,
     TranscriptProjectionNotFoundError,
 )
+from services.pratibimb.arp.verify import (
+    UNKNOWN_STATUS_LIST_SCHEMA,
+    arp_unknown_schema_http_detail,
+)
 from services.pratibimb.audit.errors import AuditWriteError
 from services.pratibimb.auth.context import AuthContext
 from services.pratibimb.authoring.deps import get_consent_store_for_authoring
@@ -150,6 +154,15 @@ async def verify_arp_assist(
             request_id=get_request_id(),
             status_list=body.status_list,
         )
+        http = arp_unknown_schema_http_detail(result)
+        if http is not None:
+            raise HTTPException(
+                status_code=http["status_code"],
+                detail={
+                    "error": http["error"],
+                    "error_kind": http["error_kind"],
+                },
+            )
         return result.as_body()
     except AuditWriteError as exc:
         raise _audit_unavailable_http(exc) from exc

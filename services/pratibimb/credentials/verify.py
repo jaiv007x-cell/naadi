@@ -10,10 +10,12 @@ from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from services.pratibimb.credentials.sign import DEFAULT_ISSUER_KEY_ID
+from services.pratibimb.credentials.compat import coerce_status_list_entries_for_verify
 from services.pratibimb.credentials.status_list import (
     DEFAULT_MAX_STALENESS,
     KEY_DEPRECATION_WINDOW,
     STATUS_LIST_SCHEMA_V1,
+    STATUS_LIST_SCHEMA_V2,
     verify_status_list_signature,
 )
 
@@ -100,7 +102,7 @@ def offline_verify(
         raise VerifyReject("valid_until_le_signed_at")
 
     schema = status_list.get("status_list_schema_version")
-    if schema != STATUS_LIST_SCHEMA_V1:
+    if schema not in (STATUS_LIST_SCHEMA_V1, STATUS_LIST_SCHEMA_V2, None, ""):
         raise VerifyReject("unknown_status_list_schema")
 
     key_id = status_list.get("key_id") or (status_list.get("proof") or {}).get("key_id")
@@ -137,12 +139,14 @@ def offline_verify(
         )
         warnings.append("stale_status_list")
 
-    # (f) revocation
+    # (f) revocation — v1 entries coerced credentials-side only (compat.py)
     cred_id = credential.get("credential_id")
+    coerced = coerce_status_list_entries_for_verify(status_list)
     revoked_ids = {
-        e["credential_id"]
-        for e in status_list.get("entries") or []
-        if e.get("credential_id")
+        e.get("identifier_id") or e.get("credential_id")
+        for e in coerced
+        if (e.get("identifier_kind") == "credential" or e.get("credential_id"))
+        and (e.get("identifier_id") or e.get("credential_id"))
     }
     if cred_id in revoked_ids:
         raise VerifyReject("credential_revoked")

@@ -11,6 +11,8 @@ from services.pratibimb.arp.sign import (
     verify_arp_signature,
 )
 
+from services.pratibimb.credentials.status_list import STATUS_LIST_SCHEMA_V2
+
 PORTABLE_ARP_ALLOWED_KEYS = frozenset(
     {
         "type",
@@ -36,6 +38,8 @@ PORTABLE_ARP_ALLOWED_KEYS = frozenset(
 )
 
 PROOF_ALLOWED_KEYS = frozenset({"type", "arp_issuer_key_id", "signature"})
+
+UNKNOWN_STATUS_LIST_SCHEMA = "unknown_status_list_schema"
 
 
 class EnvelopeReject(Exception):
@@ -78,6 +82,8 @@ def offline_verify_arp(
     status_list: dict[str, Any] | None = None,
 ) -> VerifyResult:
     now = now or datetime.now(timezone.utc)
+    if status_list is not None and _status_list_not_v2(status_list):
+        return VerifyResult(accepted=False, reason=UNKNOWN_STATUS_LIST_SCHEMA)
     try:
         decoded = decode_portable_arp_envelope(envelope)
     except EnvelopeReject as exc:
@@ -104,10 +110,27 @@ def offline_verify_arp(
         arp_id = decoded.get("arp_id")
         for entry in status_list.get("entries") or []:
             kind = entry.get("identifier_kind")
-            if kind is None and entry.get("credential_id"):
-                kind = "credential"
-            eid = entry.get("identifier_id") or entry.get("credential_id")
+            eid = entry.get("identifier_id")
             if kind == "arp" and eid == arp_id and entry.get("revoked_at"):
                 return VerifyResult(accepted=False, reason="arp_revoked")
 
     return VerifyResult(accepted=True, reason="ok")
+
+
+def _status_list_not_v2(status_list: dict[str, Any]) -> bool:
+    schema = status_list.get("status_list_schema_version")
+    entries = status_list.get("entries") or []
+    if schema != STATUS_LIST_SCHEMA_V2:
+        return True
+    return any(not entry.get("identifier_kind") for entry in entries)
+
+
+def arp_unknown_schema_http_detail(result: VerifyResult) -> dict[str, Any] | None:
+    """503 envelope for P3 fail-closed — same error_kind as post-day-30 credentials cliff."""
+    if result.accepted or result.reason != UNKNOWN_STATUS_LIST_SCHEMA:
+        return None
+    return {
+        "status_code": 503,
+        "error": UNKNOWN_STATUS_LIST_SCHEMA,
+        "error_kind": UNKNOWN_STATUS_LIST_SCHEMA,
+    }

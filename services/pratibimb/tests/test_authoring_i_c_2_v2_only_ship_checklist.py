@@ -40,7 +40,7 @@ def test_i_c_2_phase_i_pins_and_marker():
     phase = _PHASE.read_text(encoding="utf-8")
     runbook = _RUNBOOK.read_text(encoding="utf-8")
     assert "credentials/compat.py" in phase
-    assert "schema_version_unsupported" in phase
+    assert "unknown_status_list_schema" in phase
     assert "i_c_2_acceptance" in phase
     assert "B1" in phase and "B4" in phase
     assert "test-page evidence" in phase.lower() or "test-page" in phase.lower()

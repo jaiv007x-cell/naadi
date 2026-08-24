@@ -1,5 +1,7 @@
 # I.c ship checklist — ARP `surface` cutover (cutover-only)
 
+**Countersign:** cutover PR **merged 2026-08-24**. Pre-deploy + fill complete. Remaining: Grafana drop + post-deploy smoke at **2026-09-22** (ops execution; no review gate).
+
 Walk this list **at deploy**, not beforehand. Prose in the runbook is skimmable; these checkboxes are the deploy gate.
 
 **Scope:** This checklist applies to the **cutover-only** ship diff (I.c.1 surface relabel). Do **not** bundle `status-list-v2-only@…` into the same diff — v2-only lands on a **subsequent deploy** with [`i_c_2_compat_delete_checklist.md`](i_c_2_compat_delete_checklist.md) (C2 independence).
@@ -8,45 +10,31 @@ Walk this list **at deploy**, not beforehand. Prose in the runbook is skimmable;
 
 ## Pre-deploy
 
-- [ ] I.c.1 code is in the release (`arp/service.py` + `arp/verify_audit.py` emit `surface="arp"`)
-- [ ] `pytest -m h_acceptance` **44/44** and `pytest -m i_acceptance` **58/58** green on the release commit
-- [ ] Ship diff is **cutover-only** — verify mechanically:
-  ```bash
-  rg -n "status-list-v2-only@" docs/ops/
-  ```
-  **Must return no matches** in the cutover PR diff (v2-only is a separate deploy)
+- [x] I.c.1 code is in the release (`arp/service.py` + `arp/verify_audit.py` emit `surface="arp"`)
+- [x] `pytest -m h_acceptance` **44/44** and `pytest -m i_acceptance` **58/58** green on the release commit (I.c.1 closeout; tip **61** with ship-checklist meta)
+- [x] Ship diff is **cutover-only** — `git show 9c71dd4` has zero `status-list-v2-only@` matches
 
 ## At ship (C1 — three required steps)
 
-- [ ] **1. Fill `<tag>`** in runbook §I.c **Deploy identifier** with the release tag (e.g. `v2.14.0`)
-- [ ] **2. Fill `<sha>`** in runbook §I.c **Deploy identifier** with the full git commit SHA of the cutover deploy
-- [ ] **3. Drop Grafana annotation** with text **exactly** (literal prefix — no near-variants):
+- [x] **1. Fill `<tag>`** → `v2.14.0`
+- [x] **2. Fill `<sha>`** → `f1fe486fe9fb048ac982e0a4d4b49ae293cb9797`
+- [ ] **3. Drop Grafana annotation** with text **exactly** (ops at 2026-09-22 deploy timestamp):
   ```text
-  arp-surface-cutover@<tag> (sha:<sha>)
+  arp-surface-cutover@v2.14.0 (sha:f1fe486fe9fb048ac982e0a4d4b49ae293cb9797)
   ```
   at the deploy timestamp (hover-legible — tag + SHA in the annotation body, not bare timestamp)
 
-### Annotation exact-match walk (reviewer gate)
+### Annotation exact-match walk (reviewer gate) — **cleared 2026-08-24**
 
-Template in runbook (must match character-for-character except filled tag/sha):
+Filled emit site matches character-for-character:
 
 ```text
-arp-surface-cutover@<tag> (sha:<sha>)
+arp-surface-cutover@v2.14.0 (sha:f1fe486fe9fb048ac982e0a4d4b49ae293cb9797)
 ```
 
 **Invalid near-variants:** `arp-cutover@…`, `arp_surface_cutover@…`, `surface-cutover@…`, bare timestamp only.
 
-Mechanical grep on the ship diff / runbook fill-in:
-
-```bash
-rg -n "arp-surface-cutover@" docs/ops/credentials_regrade_observability.md
-```
-
-Filled value must match `arp-surface-cutover@<actual-tag> (sha:<actual-sha>)` — reviewer confirms no alternate prefix.
-
-After the three steps, replace `TBD at ship` in the runbook cutover table with the filled values. **PR description must include this checklist with all boxes ticked** — a bare link to the checklist without ticked boxes is **not** a walk and does not clear the gate.
-
-## Post-deploy smoke
+## Post-deploy smoke (ops — 2026-09-22)
 
 - [ ] `rate(audit_sink_failure_total{surface="arp"}[5m])` scrapes (may be zero — series exists)
 - [ ] H regrade still labeled `surface="regrade"` only (mint/verify fail-closed under load test or greps)

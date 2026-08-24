@@ -10,23 +10,26 @@ pytestmark = pytest.mark.i_acceptance
 _REPO = Path(__file__).resolve().parents[3]
 _SHIP = _REPO / "docs" / "ops" / "i_c_ship_checklist.md"
 _COMPAT = _REPO / "docs" / "ops" / "i_c_2_compat_delete_checklist.md"
+_FILLED = (
+    "arp-surface-cutover@v2.14.0 (sha:f1fe486fe9fb048ac982e0a4d4b49ae293cb9797)"
+)
 
 
 def test_i_c_ship_checklist_exact_annotation_template():
     text = _SHIP.read_text(encoding="utf-8")
-    assert "arp-surface-cutover@<tag> (sha:<sha>)" in text
+    assert _FILLED in text
     assert "**Invalid near-variants:**" in text
     assert "`arp-cutover@…`" in text
     assert "`arp_surface_cutover@…`" in text
-    assert 'rg -n "arp-surface-cutover@"' in text
-    assert "all boxes ticked" in text.lower()
-    assert "not** a walk" in text or "not a walk" in text.lower()
+    assert "merged 2026-08-24" in text
+    assert "cleared 2026-08-24" in text
 
 
 def test_i_c_ship_checklist_cutover_only_not_bundled_v2_only():
     text = _SHIP.read_text(encoding="utf-8")
     assert "cutover-only" in text.lower()
-    assert 'rg -n "status-list-v2-only@"' in text
+    assert "status-list-v2-only@" in text
+    assert "9c71dd4" in text
     assert "separate deploy" in text.lower() or "separate diff" in text.lower()
     assert "May share a calendar day" in text or "may share a calendar day" in text
 

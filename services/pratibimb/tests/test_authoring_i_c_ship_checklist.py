@@ -23,6 +23,8 @@ def test_i_c_ship_checklist_exact_annotation_template():
     assert "`arp_surface_cutover@…`" in text
     assert "merged 2026-08-24" in text
     assert "cleared 2026-08-24" in text
+    assert "Ship confirmation posture" in text
+    assert 'rg -n "arp-surface-cutover@"' in text
 
 
 def test_i_c_ship_checklist_cutover_only_not_bundled_v2_only():
@@ -39,3 +41,6 @@ def test_i_c_2_compat_delete_test_grep_pattern():
     assert "normalize_status_list_entries|STATUS_LIST_COMPAT_COERCION_TOTAL" in text
     assert "services/pratibimb/tests/" in text
     assert "window-bounded" in text.lower() or "pre-reset" in text.lower()
+    assert "First-walk" in text
+    assert 'rg "arp-surface-cutover@"' in text
+    assert "role:authoring-platform-oncall-lead" in text

@@ -5,6 +5,16 @@
 
 **Scope:** **Separate deploy / separate diff** from [`i_c_ship_checklist.md`](i_c_ship_checklist.md). Do not bundle v2-only annotation with cutover-only ship diff (C2 independence).
 
+## First-walk (scope open — before countersign)
+
+- [ ] **C3 clock-start is `status-list-v2-only@…` only** — `arp-surface-cutover@v2.14.0 (sha:f1fe486fe9fb048ac982e0a4d4b49ae293cb9797)` from 2026-09-22 is **not** referenced as C3 clock-start
+- [ ] **V2-only diff negative-grep (cutover independence):** run against the v2-only PR **diff**, not working tree:
+  ```bash
+  git show <v2-only-ship-commit> | rg "arp-surface-cutover@"
+  ```
+  **Must return zero matches** — surface cutover and v2-only stay in independent PRs
+- [ ] **C4 alert live:** `increase(status_list_compat_coercion_total[1d]) > 0` routes to `role:authoring-platform-oncall-lead` before scope countersign
+
 ## At v2-only land (C3 clock-start)
 
 - [ ] v1 status-list readers retired from production

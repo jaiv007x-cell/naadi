@@ -370,7 +370,11 @@ New surfaces · ARP product behavior · historical Prom rewrite · opening day-3
 | **annotation (pinned)** | `arp-surface-cutover@v2.14.0 (sha:f1fe486fe9fb048ac982e0a4d4b49ae293cb9797)` |
 | **i_acceptance** | **58** = 51 + 7 (incl. `test_i_c_7` C2/P8 forensic); tip **61** with +3 ship-checklist meta |
 
-**Ops (2026-09-22) — no further review gate:** deploy `9c71dd4` on `v2.14.0` · drop Grafana annotation with pinned string · tick three post-deploy smoke boxes. Ship confirmation when smoke green, **or** open I.c.2 v2-only scope when that cutover is ready to walk.
+**Ops (2026-09-22) — no further review gate:** deploy `9c71dd4` on `v2.14.0` · drop Grafana annotation with pinned string · tick three post-deploy smoke boxes. Ship confirmation when smoke green, **or** open I.c.2 v2-only scope when that cutover is ready to walk. **Either order — no dependency beyond calendar.**
+
+**Next-gate posture (whichever lands first):**
+- **Ship confirmation:** exact-match Grafana drop against pinned template before ticking box 3; `rg -n "arp-surface-cutover@"` on runbook emit site (see ship checklist)
+- **I.c.2 v2-only walk:** first-walk confirms cutover annotation is not C3 clock-start; v2-only diff negative-greps `arp-surface-cutover@`; C4 alert routing live to `role:authoring-platform-oncall-lead`
 
 **Carry-forwards (unchanged):**
 1. I.c.2 v2-only deploy + `status-list-v2-only@…` (sole C3 clock-start)

@@ -24,6 +24,12 @@ Walk this list **at deploy**, not beforehand. Prose in the runbook is skimmable;
   ```
   at the deploy timestamp (hover-legible — tag + SHA in the annotation body, not bare timestamp)
 
+  **Ship confirmation posture (before ticking this box):** confirm Grafana body exact-match against pinned template — no prefix drift, no near-variant. Mechanical check:
+  ```bash
+  rg -n "arp-surface-cutover@" docs/ops/credentials_regrade_observability.md
+  ```
+  Emit-site line must match `arp-surface-cutover@v2.14.0 (sha:f1fe486fe9fb048ac982e0a4d4b49ae293cb9797)`.
+
 ### Annotation exact-match walk (reviewer gate) — **cleared 2026-08-24**
 
 Filled emit site matches character-for-character:

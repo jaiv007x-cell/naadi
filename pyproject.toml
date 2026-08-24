@@ -42,6 +42,7 @@ testpaths = ["services/pratibimb/tests", "services/pratibimb/auth/tests"]
 markers = [
     "h_acceptance: Phase H rung-3 acceptance suite (H.a + H.b + H.c.1 + H.c.2)",
     "i_acceptance: Phase I alternate-rubric (ARP) acceptance suite",
+    "i_c_2_acceptance: Phase I.c.2 v2-only + compat-delete belt (distinct from i_acceptance base 58)",
     "samvaad_acceptance: SAMVAAD.a enforcement + reference rubrics + matcher spec suite",
     "samvaad_b_acceptance: SAMVAAD.b rubric corpus + summative capture + runtime stubs",
     "samvaad_c_acceptance: SAMVAAD.c Nirikshak merge + ledger summative projector + verify route",

@@ -34,7 +34,13 @@
 
 - [ ] Observed zero window: from _______________ to _______________
 - [ ] C4 did not fire in window
+- [ ] **Day-30 diff negative-grep (no annotation churn):**
+  ```bash
+  git show <day-30-commit> -- docs/ops/ | rg "status-list-v2-only@|arp-surface-cutover@"
+  ```
+  **Must return zero matches**
 - [ ] PR deletes coercion in:
+  - [ ] `services/pratibimb/credentials/compat.py` — wholesale delete (shim module)
   - [ ] `services/pratibimb/credentials/status_list.py` — `normalize_status_list_entries` v1 branch
   - [ ] `services/pratibimb/audit/metrics.py` — `STATUS_LIST_COMPAT_COERCION_TOTAL`
   - [ ] related tests (enumerate mechanically — do not guess):

@@ -78,4 +78,4 @@ Full 40–55 corpus · Drishti live · Phase 4 patient feedback · Phase 3 prese
 | 1 | `error_kind=illegal_transition` on `BiasRemediationError` | yes |
 | 2 | Zero production `emit_samvaad_verifier_audit(` sites (.b tree) | yes — `test_samvaad_b_12` |
 
-**Next:** [`samvaad_c.md`](./samvaad_c.md) — scope draft awaiting countersign.
+**Next:** [`samvaad_d.md`](./samvaad_d.md) — scope draft for Dhaara event path + Postgres 021 projector.

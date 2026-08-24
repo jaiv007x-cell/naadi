@@ -260,8 +260,6 @@ Citation anchor: `framework_acceptance_fixture()` exports `framework_citation_an
 
 See [`design/samvaad_a.md`](./design/samvaad_a.md). Migration **018** (`samvaad_verifier`). Acceptance: `pytest -m samvaad_acceptance` → **22/22**.
 
-**Next:** [`design/samvaad_b.md`](./design/samvaad_b.md) — plan pins frozen (framework vs rubric split · I-S-11 negative space · ordinal immutability); awaiting countersign before code.
-
 **Citation:** *Framework v1 — SAMVAAD.a enforced; reference rubrics v1.1; matcher spec v1; invariants I-S-1…15 frozen.*
 
 ---
@@ -270,9 +268,13 @@ See [`design/samvaad_a.md`](./design/samvaad_a.md). Migration **018** (`samvaad_
 
 **SAMVAAD.a** — Closed (enforcement stubs, empathy matcher spec, nine-rubric dry-runs, `samvaad_verifier`).
 
-**SAMVAAD.b** — **Closed** — corpus, empathy runtime stubs, Digital Literacy dry-run, summative capture, `samvaad_verifier` emit. See [`design/samvaad_b.md`](./design/samvaad_b.md). `pytest -m samvaad_b_acceptance` → **14/14**.
+**SAMVAAD.b** — **Closed** — corpus, empathy runtime stubs, Digital Literacy dry-run, summative capture, `samvaad_verifier` emit stub. [`design/samvaad_b.md`](./design/samvaad_b.md). `pytest -m samvaad_b_acceptance` → **14/14**.
 
-**SAMVAAD.c (next)** — Nirikshak matcher-kind merge; ledger summative projector; first live `samvaad_verifier` emit. Scope: [`design/samvaad_c.md`](./design/samvaad_c.md) — awaiting countersign.
+**SAMVAAD.c** — **Fully countersigned** — Nirikshak registry merge, migration **021**, summative verify route, always-on emit. [`design/samvaad_c.md`](./design/samvaad_c.md). `pytest -m samvaad_c_acceptance` → **18/18** · SAMVAAD compose **54/54**. Ship: [`ops/samvaad_c_ship_checklist.md`](./ops/samvaad_c_ship_checklist.md).
+
+**SAMVAAD.d (next)** — Matcher params · I-S-13 capture (022) · time-on-task · runtime bias detector. [`design/samvaad_d.md`](./design/samvaad_d.md) — frozen scope, awaiting countersign.
+
+**SAMVAAD.e (queued)** — Dhaara event path + Postgres 021/022 projectors. [`design/samvaad_e.md`](./design/samvaad_e.md) — opens after `.d` close.
 
 **v0.1 — Phase 1** — A, B, H + cohort time-on-task instrumentation.
 

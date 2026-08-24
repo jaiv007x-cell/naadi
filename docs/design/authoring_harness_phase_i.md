@@ -5,7 +5,7 @@ Parent: [`authoring_harness.md`](./authoring_harness.md) — Appendix C (trust l
 Prior: [`authoring_harness_phase_h.md`](./authoring_harness_phase_h.md) (**closed**), [`authoring_harness_phase_g.md`](./authoring_harness_phase_g.md) (**G.a + G.b closed**), [`authoring_harness_phase_f.md`](./authoring_harness_phase_f.md) (**closed**).
 
 **Review pattern:** seven questions → pins → invariants → matrix-as-acceptance-spec → code against green matrix.  
-**CI order:** `pytest -m h_acceptance` (**44/44**, fail-fast) → then `pytest -m i_acceptance`.
+**CI order:** `pytest -m h_acceptance` (**44/44**, fail-fast) → `pytest -m i_acceptance` (**58/58** base) → `pytest -m i_c_2_acceptance` (I.c.2.1+ belt; **distinct bucket**).
 
 ---
 
@@ -343,83 +343,99 @@ Fail-closed registry: **seven** `file:function` anchors (five H-era + `arp/servi
 ### Day-30 PR target files (named — no archaeology)
 
 1. `services/pratibimb/credentials/status_list.py` — v1 missing-kind coercion in `normalize_status_list_entries`
-2. `services/pratibimb/audit/metrics.py` — `STATUS_LIST_COMPAT_COERCION_TOTAL`
-3. Tests asserting coercion increment
+2. `services/pratibimb/credentials/compat.py` — **wholesale delete** (preferred over branch surgery in `verify.py`)
+3. `services/pratibimb/audit/metrics.py` — `STATUS_LIST_COMPAT_COERCION_TOTAL`
+4. Tests asserting coercion increment (grep: `normalize_status_list_entries|STATUS_LIST_COMPAT_COERCION_TOTAL|compat_coercion`)
 
 ### Artifacts
 
 | Artifact | Path |
 |----------|------|
 | Surface cutover ship | [`i_c_ship_checklist.md`](../ops/i_c_ship_checklist.md) — **merged** |
-| V2-only reader retirement ship | [`i_c_2_v2_only_ship_checklist.md`](../ops/i_c_2_v2_only_ship_checklist.md) — **scope open** |
+| V2-only reader retirement ship | [`i_c_2_v2_only_ship_checklist.md`](../ops/i_c_2_v2_only_ship_checklist.md) — **countersigned** |
 | C3/C4 delete window | [`i_c_2_compat_delete_checklist.md`](../ops/i_c_2_compat_delete_checklist.md) |
 | Runbook pins | [`credentials_regrade_observability.md`](../ops/credentials_regrade_observability.md) §Compat coercion delete |
 
+### Non-goals (I.c.2)
+
+New surfaces · ARP product behavior · historical Prom rewrite · opening day-30 PR before calendar window
+
+### Gate (I.c.2 cutover)
+
+**Cutover PR merged — countersign closed 2026-08-24.** Ops annotation + smoke at **2026-09-22** (parallel track).
+
 ---
 
-## I.c.2.1 — v2-only reader retirement (**scope open 2026-08-24**)
+## I.c.2.1 — v2-only reader retirement (**countersigned 2026-08-24 — opens P1–P3**)
 
-**Goal:** Retire v1 status-list readers in production; drop `status-list-v2-only@…` annotation (C3 clock-start). **Not** day-30 compat-delete — shim stays until calendar window closes.
+**Goal:** Retire v1 status-list **mint** path (P1); credentials reader accepts v2 + v1-via-shim (P2); ARP reader rejects v1/missing-kind with no coercion (P3). Drop **`status-list-v2-only@…`** at deploy — **sole C3 clock-start**. Compat shim delete is **day-30 PR**, not this slice.
 
-**Belt target:** `h_acceptance` 44/44 → `i_acceptance` prior green + new I.c.2.1 cases (TBD at implement).
+**Belt:** `h_acceptance` 44/44 → `i_acceptance` **58/58** (unchanged base) → `i_c_2_acceptance` (**+4 belts** at I.c.2.1 ship + **B4 product** when P3 lands).
 
 ### Product pins (v2-only deploy)
 
 | # | Pin |
 |---|-----|
-| **P1** | **Publish v2 only:** `CredentialStatusService._publish_snapshot` emits `status_list.v2` with `identifier_kind` + `identifier_id` on every entry |
-| **P2** | **Credential offline verify accepts v2:** `credentials/verify.py` verifies `status_list.v2` envelopes (not reject as unknown schema) |
-| **P3** | **ARP verify rejects v1 / missing-kind:** `arp/verify.py` — no inline `credential_id`-only coercion; v1 schema or entry without `identifier_kind` → reject (not coerce) |
-| **P4** | **Compat shim retained:** `normalize_status_list_entries` + `STATUS_LIST_COMPAT_COERCION_TOTAL` **remain in tree** until day-30 PR (counter should stay at zero post v2-only) |
-| **P5** | **Historical snapshots unchanged:** pre-v2-only `envelope_bytes` in DB not rewritten |
+| **P1** | **Publish v2 only:** `CredentialStatusService._publish_snapshot` is the **sole production v1-capable mint site** — emits `status_list.v2` with `identifier_kind` + `identifier_id` on every entry. Ship grep (zero hits in mint path post-P1): `rg -n "STATUS_LIST_SCHEMA_V1|status_list\.v1" services/pratibimb/credentials/status_service.py` |
+| **P2** | **Credentials reader accepts v2 + v1-via-shim:** v2 native in `credentials/verify.py`; v1 missing-kind coercion lives in **`credentials/compat.py`** (wholesale-deletable at day-30 — **not** inline branches in `verify.py`). Shim calls `normalize_status_list_entries` + increments counter **credentials-side only** |
+| **P3** | **ARP reader rejects v1 / missing-kind:** `arp/verify.py` — no inline `credential_id`→`credential` coercion; v1 schema or missing `identifier_kind` → **`schema_version_unsupported`** (fail-closed); **does not** increment `status_list_compat_coercion_total` |
+| **P4** | **Compat shim retained until day-30 PR:** `compat.py`, `normalize_status_list_entries`, `STATUS_LIST_COMPAT_COERCION_TOTAL` stay in tree; v2-only ship diff must show **no deletion** of coercion paths |
+| **P5** | **Historical snapshots unchanged:** `envelope_bytes` / DB rows not rewritten. Pre-cutover v1 snapshots queryable via **`status_list_schema_version`** disambiguator (mirror I.c `caller_kind` pin): spanning queries use `status_list_schema_version=~"status_list.v1|status_list.v2"` with v2-only Grafana annotation |
+
+### Snapshot rotation / day-30 safety (answers a/b/c → **operational (a) + DB cliff (b)**)
+
+| Field | Pin |
+|-------|-----|
+| **Verify staleness** | **7 days** — G.b Option A (`DEFAULT_MAX_STALENESS`); live offline verify rejects stale snapshots regardless of schema |
+| **Envelope TTL** | **30 days** (`DEFAULT_LIST_TTL` / `valid_until`) |
+| **C3 window margin** | 30 consecutive zero days on coercion counter = evidence no live shim path exercised; **7d staleness << 30d window** |
+| **Post day-30** | DB v1 rows **remain** but reads **fail-closed** (`unknown_status_list_schema`) — no rewrite (b), not (c) |
+| **Forensic query** | `status_list_schema_version="status_list.v1"` for pre-v2-only rows; do not infer kind from entries alone on v1 |
+
+### Matrix case (P3 / belt B4)
+
+`test_i_c_2_1_arp_v1_snapshot_fail_closed_no_coercion_counter` — v1 fixture → ARP fail-closed with named `reason`; `STATUS_LIST_COMPAT_COERCION_TOTAL` unchanged.
 
 ### Ship diff scope (locked)
 
 | In scope | Out of scope |
 |----------|--------------|
-| P1–P3 product changes | Delete `normalize_status_list_entries` coercion branch |
-| Runbook v2-only deploy fill | `arp-surface-cutover@…` doc changes |
-| `status-list-v2-only@…` annotation template | Day-30 delete PR |
-| C4 alert wiring confirmation | Metric/sample rewrite |
+| P1–P3 + `credentials/compat.py` shim module | Delete shim / counter |
+| Runbook v2-only fill + C3 annotation | `arp-surface-cutover@…` doc changes |
+| C4 alert + **test-page evidence** in PR | Day-30 delete PR |
 
-### Review walk (three points — mirror cutover)
+### Symmetric negative greps (three PR types)
+
+| PR | Diff grep |
+|----|-----------|
+| Cutover (merged) | `git show <commit> -- docs/ops/ \| rg "status-list-v2-only@"` → zero |
+| **V2-only** | `git show <commit> -- docs/ops/ \| rg "arp-surface-cutover@"` → zero |
+| **Day-30 delete** | `git show <commit> -- docs/ops/ \| rg "status-list-v2-only@|arp-surface-cutover@"` → zero |
+
+### I.c.2.1 belt cases (`i_c_2_acceptance` — not `i_acceptance`)
+
+| Belt | Asserts |
+|------|---------|
+| **B1** | `status-list-v2-only@<tag> (sha:<sha>)` template + near-variant denylist |
+| **B2** | Symmetric scope — v2-only docs exclude cutover annotation emit |
+| **B3** | V2-only ship scope excludes compat-delete / coercion removal |
+| **B4** | ARP v1 fixture fail-closed; coercion counter unchanged (P3) |
+
+### Review walk (three points)
 
 | # | Pin |
 |---|-----|
 | **1** | §I.c.2.1 vs [`i_c_2_v2_only_ship_checklist.md`](../ops/i_c_2_v2_only_ship_checklist.md) — all boxes ticked in PR description |
-| **2** | Annotation exact-match: `status-list-v2-only@<tag> (sha:<sha>)` at runbook emit site |
-| **3** | V2-only diff: `git show <commit> -- docs/ops/ \| rg "arp-surface-cutover@"` zero matches; **no** compat-delete removal in diff |
+| **2** | Annotation exact-match `status-list-v2-only@<tag> (sha:<sha>)` at runbook emit site |
+| **3** | Symmetric diff-greps clean; C4 test-page evidence recorded; P1 sole-emit grep zero in `status_service.py` |
 
 ### Non-goals
 
-Day-30 delete · new surfaces · ARP mint/verify behavior beyond status-list read path · bundling cutover annotation
-
-### Non-goals
-
-New surfaces · ARP product behavior · historical Prom rewrite · opening day-30 PR before calendar window
+Day-30 delete in same PR · cutover annotation bundle · historical envelope rewrite · ARP-side coercion
 
 ### Gate
 
-**Cutover PR merged — countersign closed 2026-08-24.** Three-point walk cleared (checklist boxes in PR description · annotation exact-match · diff-grep `status-list-v2-only@` clean on `9c71dd4`).
-
-| Field | Value |
-|-------|-------|
-| **tag** | `v2.14.0` |
-| **cutover SHA** | `f1fe486fe9fb048ac982e0a4d4b49ae293cb9797` |
-| **ship commit** | `9c71dd4` |
-| **annotation (pinned)** | `arp-surface-cutover@v2.14.0 (sha:f1fe486fe9fb048ac982e0a4d4b49ae293cb9797)` |
-| **i_acceptance** | **58** = 51 + 7 (incl. `test_i_c_7` C2/P8 forensic); tip **61** with +3 ship-checklist meta |
-
-**Ops (2026-09-22) — no further review gate:** deploy `9c71dd4` on `v2.14.0` · drop Grafana annotation with pinned string · tick three post-deploy smoke boxes. Ship confirmation when smoke green, **or** open I.c.2 v2-only scope when that cutover is ready to walk. **Either order — no dependency beyond calendar.**
-
-**Next-gate posture (whichever lands first):**
-- **Ship confirmation:** exact-match Grafana drop against pinned template before ticking box 3; `rg -n "arp-surface-cutover@"` on runbook emit site (see ship checklist)
-- **I.c.2 v2-only walk:** first-walk confirms cutover annotation is not C3 clock-start; v2-only diff negative-greps `arp-surface-cutover@`; C4 alert routing live to `role:authoring-platform-oncall-lead`
-
-**Carry-forwards (unchanged):**
-1. I.c.2 v2-only deploy + `status-list-v2-only@…` (sole C3 clock-start)
-2. Day-30 delete PR after 30 consecutive zero days; C4 `increase(status_list_compat_coercion_total[1d]) > 0` resets window
-3. Owner: `role:authoring-platform-oncall-lead`
+**I.c.2.1 scope countersigned 2026-08-24.** P1–P3 implementation may open. Parallel: 2026-09-22 cutover ops does **not** gate this slice.
 
 ---
 
@@ -430,13 +446,13 @@ New surfaces · ARP product behavior · historical Prom rewrite · opening day-3
 | **I.a** | **Closed** — 28/28; migration 019 |
 | **I.b** | **Closed** — I.b.1 signed off; **51/51** |
 | **I.c.1** | **Closed** — 58/58; `surface="arp"`; cutover PR merged |
-| **I.c.2** | **Countersigned** — cutover ship closed; v2-only + C3 window pending |
-| **I.c.2.1** | **Scope open** — v2-only reader retirement; ship checklist drafted |
+| **I.c.2** | **Countersigned** — cutover ship closed; C3/C4 discipline landed |
+| **I.c.2.1** | **Countersigned** — P1–P3 **open for implementation** |
 
 ---
 
 ## Gate
 
-**Cutover countersign closed.** Standing: ops annotation drop at **2026-09-22**, then ship-confirmation **or** I.c.2.1 v2-only walk (either order).
+**Cutover countersign closed.** Ops at **2026-09-22** (parallel). **I.c.2.1 P1–P3 implementation open.**
 
-**I.c.2.1 scope open** — v2-only ship checklist + product pins at §I.c.2.1. Next: implement P1–P3, then v2-only PR walk.
+**CI:** `h_acceptance` 44/44 → `i_acceptance` 58/58 → `i_c_2_acceptance` (I.c.2.1 belts; distinct from base 58).

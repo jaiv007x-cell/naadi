@@ -162,5 +162,7 @@ Surface relabel and v2-only **may share a calendar day** but are **independent d
 | **Day-30 PR target files** | (1) `services/pratibimb/credentials/status_list.py` — remove `normalize_status_list_entries` v1 missing-kind → `credential` coercion branch (2) `services/pratibimb/audit/metrics.py` — remove or dead-code `STATUS_LIST_COMPAT_COERCION_TOTAL` if unused (3) tests that assert coercion increment |
 | **Day-30 PR description** | Must cite **I.c.2 C3**, link `status-list-v2-only@…` annotation, and state observed window (e.g. “zero from YYYY-MM-DD to YYYY-MM-DD; C4 did not fire”) |
 | **Day-30 open gate** | No C4 fire during the 30 consecutive zero days |
+| **Forensic query (P5)** | Spanning v1/v2 snapshots: filter `status_list_schema_version` — v1 rows use `"status_list.v1"`; v2 rows use `"status_list.v2"`. Do not infer kind from v1 entries alone |
+| **Snapshot staleness** | Verify path max staleness **7d** (G.b); envelope `valid_until` **30d** — 7d ≪ C3 30d window |
 
 **C4 not deferred** — without the alert, observation falls to manual daily check by the owner; that trade-off is rejected for I.c.2. Alert is the landed observation artifact.

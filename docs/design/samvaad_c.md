@@ -119,3 +119,18 @@ Rows are semantic units; tests are assertion units. **16 rows / 18 tests** is th
 |---|------|------------------------------|
 | **CF-1** | Formative-via-route (`POST /v1/samvaad/verify` + `assessment_kind=formative` + `patient_reported`) | If .d touches the route surface → land in .d matrix. If orthogonal → either standalone .d case **or** explicit *"deferred through .d, revisit at .e"* with a named trigger. Do **not** leave as indefinite "optional." |
 | **CF-2** | `samvaad_verifier` live emit — audit-row shape parity vs .b stub emit | If .d touches the verifier surface → re-verify parity as a matrix case (byte-identical to .b stub keys / shape under live path). Do **not** assume .c parity persists across a verifier change. |
+
+### Posture at .d scope draft (not surprises)
+
+1. **CF-1 disposition is a scope-walk question, not a post-hoc decision.** Pick `{land in .d matrix | standalone .d case | explicit defer with named trigger}` *during* the scope walk — before countersign / before code opens. No "we'll figure it out after."
+2. **CF-2 parity is a matrix-case candidate if the verifier surface is touched at all.** Even a small verifier change (signature tweak, new field, reordered params) can shift audit-row byte shape and silently break .b cases that assumed the stub shape. If .d touches the verifier → parity is a **matrix row**, not a belt test.
+
+**Resolution (2026-08-24):** CF-1 landed in **SAMVAAD.d** (022 formative table). CF-2 = **verifier orthogonality** CI row in `.d` #8. Dhaara/Postgres carry-forward → **SAMVAAD.e** ([`samvaad_e.md`](./samvaad_e.md)).
+
+### Review gate (unchanged)
+
+1. Scope walk — surfaces touched, invariants at stake, matrix shape proposed  
+2. Q-sharpening — axis/shape questions pinned before countersign  
+3. Countersign — matrix frozen, marker named, SAMVAAD-only rollup (`i_acceptance` separate)  
+4. Code against frozen matrix — green before close  
+

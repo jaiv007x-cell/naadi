@@ -139,8 +139,8 @@ Expected production `AUDIT_SINK_FAILURE_TOTAL.labels(...).inc()` sites — seven
 
 | Field | Pin |
 |-------|-----|
-| **Deploy identifier (v2-only)** | **TBD at ship** — record release tag + git commit SHA |
-| **Grafana annotation text** | `status-list-v2-only@<tag> (sha:<sha>)` at deploy timestamp — **sole C3 clock-start** |
+| **Deploy identifier (v2-only)** | **tag=`v2.15.0`** · **sha=`e431c4841a31e707f4d194279ffed32eaea9b82a`** (I.c.2.1 v2-only ship) |
+| **Grafana annotation text** | `status-list-v2-only@v2.15.0 (sha:e431c4841a31e707f4d194279ffed32eaea9b82a)` at deploy timestamp — **sole C3 clock-start** |
 | **Ship checklist** | [`i_c_2_v2_only_ship_checklist.md`](i_c_2_v2_only_ship_checklist.md) |
 
 **Two Grafana annotations (do not conflate):**
@@ -148,13 +148,13 @@ Expected production `AUDIT_SINK_FAILURE_TOTAL.labels(...).inc()` sites — seven
 | Annotation text template | Event | Starts C3 clock? |
 |--------------------------|-------|------------------|
 | `arp-surface-cutover@<tag> (sha:<sha>)` | I.c.1 ARP `surface` relabel | **No** |
-| `status-list-v2-only@<tag> (sha:<sha>)` | v1 status-list readers retired (v2-only) | **Yes — sole C3 clock-start** |
+| `status-list-v2-only@…` (emit-site literal above) | v1 status-list readers retired (v2-only) | **Yes — sole C3 clock-start** |
 
 Surface relabel and v2-only **may share a calendar day** but are **independent deploys** (or independent commits). C3 must **not** use `arp-surface-cutover@…` as clock-start — that marks metric-label cutover, not “no v1 reader can coerce.” Accidental zero during v1/v2 coexistence does **not** start the 30 days.
 
 | C3 field | Pin |
 |----------|-----|
-| **Clock-start** | Timestamp of Grafana annotation `status-list-v2-only@<tag> (sha:<sha>)` |
+| **Clock-start** | Timestamp of Grafana annotation at the v2-only emit site (filled tag+SHA in body) |
 | **Window** | 30 consecutive days at zero **after** that annotation |
 | **Clock reset** | Any non-zero coercion after clock-start **resets** the window: next true-zero day = new day-0. **Window-bounded:** stale day-30 PR from pre-reset window must close/rebase — not mergeable because calendar hit day 30 |
 | **Owner (role)** | `role:authoring-platform-oncall-lead` |

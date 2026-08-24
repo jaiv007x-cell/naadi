@@ -42,5 +42,6 @@ def test_i_c_2_compat_delete_test_grep_pattern():
     assert "services/pratibimb/tests/" in text
     assert "window-bounded" in text.lower() or "pre-reset" in text.lower()
     assert "First-walk" in text
-    assert 'rg "arp-surface-cutover@"' in text
+    assert 'git show <v2-only-ship-commit> -- docs/ops/ | rg "arp-surface-cutover@"' in text
+    assert "before v2-only deploy merges" in text.lower()
     assert "role:authoring-platform-oncall-lead" in text

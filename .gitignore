@@ -12,3 +12,5 @@ pgdata/
 *.log
 *.db
 *.db-journal
+*.db.runtime
+*.db.runtime-journal

@@ -9,7 +9,6 @@ from dataclasses import asdict, dataclass, field
 from typing import Any
 
 from services.pratibimb.samvaad.evidence_class import (
-    EvidenceClass,
     assert_summative_evidence_class,
 )
 from services.pratibimb.samvaad.summative_contract import (

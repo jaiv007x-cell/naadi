@@ -1,8 +1,8 @@
-# SAMVAAD.e — Dhaara Event Path + Ledger Postgres Projector (Scope draft)
+# SAMVAAD.e — Dhaara Event Path + Ledger Postgres Projector
 
 **Parent:** [`samvaad.md`](../samvaad.md) Framework v1  
 **Predecessor:** SAMVAAD.d **closed** (matcher params · I-S-13 capture scaffolding · time-on-task · runtime bias detector)  
-**Status:** **Frozen and countersigned** — code walk open against 11/14/79 matrix
+**Status:** **Closed** — 11 rows / 14 tests / SAMVAAD compose 79
 **Framework stop rule:** inherited unchanged — no .e exceptions.
 
 ## Boundary sentence
@@ -229,3 +229,16 @@ samvaad_e_acceptance: 14
 migration 023 dedup/backfill shape, additive freshness schema, deterministic
 rebuild, and post-commit + exact-reconciliation boundary frozen. Code opens
 only against this matrix.
+
+## Closeout
+
+- `pytest -m samvaad_e_acceptance` → **14/14**
+- Prior compose remains **65/65**; SAMVAAD compose is **79/79**
+- Migration 023 adds reviewed, fail-closed provenance backfill and
+  tenant-scoped dedup for both authoritative evidence tables
+- Successful commits publish one deterministic Dhaara event per competency;
+  failed publishes remain committed and reconcile from 021/022
+- Rebuilds from summative + formative rows are byte-identical and ordered by
+  capture time, evidence ID, then competency
+- Prometheus labels remain closed and exclude tenant/session/evidence IDs
+- CF-2 remains exactly one verifier-audit production Call site

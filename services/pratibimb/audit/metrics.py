@@ -127,4 +127,10 @@ def render_prometheus_metrics() -> str:
     if ncvet_block:
         lines.extend(ncvet_block.split("\n"))
 
+    from services.pratibimb.samvaad.metrics import render_samvaad_prometheus_metrics
+
+    samvaad_block = render_samvaad_prometheus_metrics().strip()
+    if samvaad_block:
+        lines.extend(samvaad_block.split("\n"))
+
     return "\n".join(line for line in lines if line) + "\n"

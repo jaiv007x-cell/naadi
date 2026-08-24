@@ -442,3 +442,73 @@ class ArpArtifactRow(Base):
     envelope_bytes = Column(Text, nullable=False)
     created_at = Column(DateTime(timezone=True), nullable=False)
 
+
+class SamvaadSummativeEvidenceRow(Base):
+    """SAMVAAD 021/023 append-only summative evidence source of truth."""
+
+    __tablename__ = "samvaad_summative_evidence"
+    __table_args__ = (
+        UniqueConstraint(
+            "tenant_id",
+            "transcript_digest",
+            name="uq_samvaad_summative_tenant_digest",
+        ),
+        CheckConstraint(
+            "assessment_kind = 'summative'",
+            name="ck_samvaad_summative_assessment_kind",
+        ),
+        CheckConstraint(
+            "evidence_class IN ('machine_sim', 'preceptor_attested')",
+            name="ck_samvaad_summative_evidence_class",
+        ),
+    )
+
+    evidence_id = Column(String, primary_key=True)
+    tenant_id = Column(String, nullable=False, index=True)
+    learner_pseudo_id = Column(String, nullable=False, index=True)
+    session_anchor = Column(String, nullable=False)
+    transcript_digest = Column(String, nullable=False)
+    grader_version = Column(String, nullable=False)
+    rubric_schema_version = Column(String, nullable=False)
+    artifact_schema_version = Column(String, nullable=False)
+    assessment_kind = Column(String, nullable=False, default="summative")
+    evidence_class = Column(String, nullable=False)
+    framework_citation_anchor = Column(String, nullable=True)
+    competency_hits_json = Column(Text, nullable=False, default="[]")
+    captured_at_utc = Column(DateTime(timezone=True), nullable=False, index=True)
+
+
+class SamvaadFormativeEvidenceRow(Base):
+    """SAMVAAD 022/023 append-only formative evidence source of truth."""
+
+    __tablename__ = "samvaad_formative_evidence"
+    __table_args__ = (
+        UniqueConstraint(
+            "tenant_id",
+            "evidence_digest",
+            name="uq_samvaad_formative_tenant_digest",
+        ),
+        CheckConstraint(
+            "assessment_kind = 'formative'",
+            name="ck_samvaad_formative_assessment_kind",
+        ),
+        CheckConstraint(
+            "evidence_class IN "
+            "('machine_sim', 'preceptor_attested', 'patient_reported')",
+            name="ck_samvaad_formative_evidence_class",
+        ),
+    )
+
+    evidence_id = Column(String, primary_key=True)
+    tenant_id = Column(String, nullable=False, index=True)
+    learner_pseudo_id = Column(String, nullable=False, index=True)
+    assessment_kind = Column(String, nullable=False, default="formative")
+    evidence_class = Column(String, nullable=False)
+    evidence_digest = Column(String(64), nullable=False)
+    source_context_json = Column(Text, nullable=False)
+    submitted_by = Column(String, nullable=False)
+    session_anchor = Column(String, nullable=False)
+    matcher_parameters_json = Column(Text, nullable=False)
+    competency_hits_json = Column(Text, nullable=False, default="[]")
+    captured_at_utc = Column(DateTime(timezone=True), nullable=False, index=True)
+

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import json
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any, Callable
 
 from sqlalchemy import select
@@ -84,6 +84,18 @@ class CredentialStatusService:
             for r in by_id.values()
         ]
         signed_at = self._now()
+        # Avoid identical envelope bytes when empty snapshots mint in the same tick
+        # (pagination clients compare envelope content, not snapshot_id).
+        last = session.execute(
+            select(CredentialStatusListSnapshotRow.signed_at)
+            .where(CredentialStatusListSnapshotRow.tenant_id == tenant_id)
+            .order_by(CredentialStatusListSnapshotRow.signed_at.desc())
+            .limit(1)
+        ).scalar_one_or_none()
+        if last is not None:
+            last_aware = last if last.tzinfo else last.replace(tzinfo=timezone.utc)
+            if signed_at <= last_aware:
+                signed_at = last_aware + timedelta(microseconds=1)
         valid_until = signed_at + self._list_ttl
         envelope = build_status_list_envelope(
             entries=entries,

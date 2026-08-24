@@ -74,6 +74,7 @@ def _clean_e_state():
 
 
 def _summative_payload(**overrides):
+    hits = ["clinical.empathy", "clinical.handoff"]
     payload = {
         "transcript_digest": "digest-021",
         "grader_version": "grader-v1",
@@ -82,13 +83,15 @@ def _summative_payload(**overrides):
         "evidence_class": "machine_sim",
         "learner_pseudo_id": "learner-1",
         "session_anchor": "session-021",
-        "competency_hits": ["clinical.empathy", "clinical.handoff"],
+        "competency_hits": hits,
+        "freshness_inputs": _freshness_inputs(hits),
     }
     payload.update(overrides)
     return payload
 
 
 def _formative_payload(**overrides):
+    hits = ["clinical.empathy", "clinical.handoff"]
     payload = {
         "evidence_class": "patient_reported",
         "learner_pseudo_id": "learner-1",
@@ -96,10 +99,26 @@ def _formative_payload(**overrides):
         "submitted_by": "patient-opaque",
         "session_anchor": "session-022",
         "matcher_parameters": {"matched": True, "window_ms": 5000},
-        "competency_hits": ["clinical.empathy", "clinical.handoff"],
+        "competency_hits": hits,
+        "freshness_inputs": _freshness_inputs(hits),
     }
     payload.update(overrides)
     return payload
+
+
+def _freshness_inputs(hits):
+    return {
+        competency_id: {
+            "competency_before": 0.4,
+            "competency_after": 0.6,
+            "ability": 0.58,
+            "confidence": 0.72,
+            "freshness": 0.91,
+            "evidence_age_days": 0.0,
+            "reassessment_due": False,
+        }
+        for competency_id in hits
+    }
 
 
 def _insert_summative(
@@ -234,6 +253,18 @@ def test_samvaad_e_6_class_aware_weight(ledger_session):
     snapshot = sink.ordered()[0].snapshot
     assert snapshot.evidence_class == "preceptor_attested"
     assert snapshot.evidence_weight == 1.35
+    assert snapshot.ability == 0.58
+    assert snapshot.confidence == 0.72
+    assert snapshot.freshness == 0.91
+    missing_inputs = _summative_payload(transcript_digest="digest-no-inputs")
+    missing_inputs.pop("freshness_inputs")
+    with pytest.raises(ValueError, match="freshness_inputs"):
+        _insert_summative(
+            ledger_session,
+            payload=missing_inputs,
+            evidence_id="evidence-no-inputs",
+        )
+    assert len(ledger_session.scalars(select(SamvaadSummativeEvidenceRow)).all()) == 1
 
 
 def test_samvaad_e_7_prometheus_closed_labels():
@@ -419,6 +450,9 @@ def test_samvaad_e_11_d_routing_regression_under_sql_backend(
         ledger_session=ledger_session,
         learner_pseudo_id="learner-1",
         session_anchor="session-021",
+        freshness_inputs=_freshness_inputs(
+            ["clinical.empathy", "clinical.handoff"]
+        ),
     )
     assert formative["assessment_kind"] == "formative"
     assert summative["inserted"] is True

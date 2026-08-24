@@ -15,6 +15,7 @@ from services.pratibimb.samvaad.dhaara_projection import (
     EvidenceProjectionSource,
     ProjectionSink,
     canonical_json,
+    normalize_freshness_inputs,
     publish_source,
 )
 from services.pratibimb.samvaad.evidence_class import assert_known_evidence_class
@@ -40,6 +41,7 @@ class FormativeLedgerRow:
     learner_pseudo_id: str | None = None
     competency_hits_json: str = "[]"
     evidence_digest: str = ""
+    freshness_inputs_json: str = "{}"
 
 
 def clear_formative_ledger() -> None:
@@ -113,6 +115,14 @@ def insert_formative_evidence(
         raise ValueError(
             "SQL formative projection requires tenant_id and learner_pseudo_id"
         )
+    freshness_inputs = (
+        normalize_freshness_inputs(
+            competency_hits,
+            payload.get("freshness_inputs"),
+        )
+        if session is not None or projection_sink is not None
+        else {}
+    )
     key = (resolved_tenant or "", digest)
     if session is None and digest and key in _EMITTED_DIGESTS:
         _raise_duplicate_formative()
@@ -130,6 +140,7 @@ def insert_formative_evidence(
             list(competency_hits), separators=(",", ":")
         ),
         evidence_digest=digest,
+        freshness_inputs_json=canonical_json(freshness_inputs),
     )
     if session is not None:
         session.add(
@@ -145,6 +156,7 @@ def insert_formative_evidence(
                 session_anchor=row.session_anchor,
                 matcher_parameters_json=row.matcher_parameters_json,
                 competency_hits_json=row.competency_hits_json,
+                freshness_inputs_json=row.freshness_inputs_json,
                 captured_at_utc=row.captured_at_utc,
             )
         )
@@ -172,6 +184,7 @@ def insert_formative_evidence(
             "learner_pseudo_id": row.learner_pseudo_id,
             "competency_hits_json": row.competency_hits_json,
             "evidence_digest": row.evidence_digest,
+            "freshness_inputs_json": row.freshness_inputs_json,
         }
     )
     if digest:
@@ -193,6 +206,7 @@ def insert_formative_evidence(
                 session_anchor=row.session_anchor,
                 replay_hash=row.evidence_digest,
                 competency_hits=tuple(competency_hits),
+                freshness_inputs=freshness_inputs,
                 captured_at_utc=row.captured_at_utc,
             ),
             projection_sink,

@@ -13,6 +13,8 @@ from services.pratibimb.ledger.models import SamvaadSummativeEvidenceRow
 from services.pratibimb.samvaad.dhaara_projection import (
     EvidenceProjectionSource,
     ProjectionSink,
+    canonical_json,
+    normalize_freshness_inputs,
     publish_source,
 )
 from services.pratibimb.samvaad.metrics import record_evidence_insert
@@ -36,6 +38,7 @@ class SummativeLedgerRow:
     captured_at_utc: datetime
     learner_pseudo_id: str | None = None
     session_anchor: str | None = None
+    freshness_inputs_json: str = "{}"
 
 
 def clear_summative_ledger() -> None:
@@ -79,6 +82,14 @@ def insert_summative_evidence(
         raise ValueError(
             "SQL summative projection requires learner_pseudo_id and session_anchor"
         )
+    freshness_inputs = (
+        normalize_freshness_inputs(
+            record.competency_hits,
+            record.extras.get("freshness_inputs"),
+        )
+        if session is not None or projection_sink is not None
+        else {}
+    )
     captured = captured_at_utc or datetime.now(timezone.utc)
     row = SummativeLedgerRow(
         evidence_id=evidence_id or str(uuid4()),
@@ -95,6 +106,7 @@ def insert_summative_evidence(
         captured_at_utc=captured,
         learner_pseudo_id=learner_pseudo_id,
         session_anchor=session_anchor,
+        freshness_inputs_json=canonical_json(freshness_inputs),
     )
     if session is not None:
         session.add(
@@ -111,6 +123,7 @@ def insert_summative_evidence(
                 evidence_class=row.evidence_class,
                 framework_citation_anchor=row.framework_citation_anchor,
                 competency_hits_json=row.competency_hits_json,
+                freshness_inputs_json=row.freshness_inputs_json,
                 captured_at_utc=row.captured_at_utc,
             )
         )
@@ -139,6 +152,7 @@ def insert_summative_evidence(
             "captured_at_utc": row.captured_at_utc.isoformat(),
             "learner_pseudo_id": row.learner_pseudo_id,
             "session_anchor": row.session_anchor,
+            "freshness_inputs_json": row.freshness_inputs_json,
         }
     )
     _EMITTED_DIGESTS.add(key)
@@ -161,6 +175,7 @@ def insert_summative_evidence(
                 session_anchor=row.session_anchor,
                 replay_hash=row.transcript_digest,
                 competency_hits=record.competency_hits,
+                freshness_inputs=freshness_inputs,
                 captured_at_utc=row.captured_at_utc,
             ),
             projection_sink,

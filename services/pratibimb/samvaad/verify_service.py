@@ -44,6 +44,7 @@ def verify_samvaad(
     projection_sink: "ProjectionSink | None" = None,
     learner_pseudo_id: str | None = None,
     session_anchor: str | None = None,
+    freshness_inputs: dict[str, dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """
     Shape A + pin 2: always emit; flag gates live_emit stamp and SoT INSERT.
@@ -55,6 +56,8 @@ def verify_samvaad(
         payload.setdefault("learner_pseudo_id", learner_pseudo_id)
     if session_anchor is not None:
         payload.setdefault("session_anchor", session_anchor)
+    if freshness_inputs is not None:
+        payload.setdefault("freshness_inputs", freshness_inputs)
     evidence_class = str(payload.get("evidence_class", ""))
 
     would_mutate = _summative_would_mutate(dry_run=dry_run, evidence_class=evidence_class)

@@ -25,6 +25,10 @@ from services.pratibimb.samvaad.metrics import (
 from shared.schemas.freshness import CompetencyState, SkillFreshnessSnapshot
 
 
+class FreshnessInputError(ValueError):
+    """Caller supplied incomplete or invalid persisted freshness scalars."""
+
+
 def canonical_json(value: Any) -> str:
     return json.dumps(
         value,
@@ -33,6 +37,59 @@ def canonical_json(value: Any) -> str:
         ensure_ascii=False,
         default=_json_default,
     )
+
+
+def normalize_freshness_inputs(
+    competency_hits: Iterable[str],
+    value: Any,
+) -> dict[str, dict[str, Any]]:
+    hits = tuple(competency_hits)
+    if not hits and value is None:
+        return {}
+    if not isinstance(value, dict) or set(value) != set(hits):
+        raise FreshnessInputError(
+            "freshness_inputs must contain exactly one object per competency hit"
+        )
+    required = {
+        "competency_after",
+        "ability",
+        "confidence",
+        "freshness",
+        "evidence_age_days",
+        "reassessment_due",
+    }
+    normalized: dict[str, dict[str, Any]] = {}
+    for competency_id in hits:
+        item = value[competency_id]
+        if not isinstance(item, dict) or not required <= set(item):
+            raise FreshnessInputError(
+                f"freshness inputs for {competency_id!r} require {sorted(required)}"
+            )
+        result = dict(item)
+        for name in ("competency_after", "ability", "confidence", "freshness"):
+            result[name] = float(result[name])
+            if not 0.0 <= result[name] <= 1.0:
+                raise FreshnessInputError(
+                    f"{name} for {competency_id!r} must be in [0, 1]"
+                )
+        before = result.get("competency_before")
+        if before is not None:
+            result["competency_before"] = float(before)
+            if not 0.0 <= result["competency_before"] <= 1.0:
+                raise FreshnessInputError(
+                    f"competency_before for {competency_id!r} must be in [0, 1]"
+                )
+        result["evidence_age_days"] = float(result["evidence_age_days"])
+        if result["evidence_age_days"] < 0.0:
+            raise FreshnessInputError(
+                f"evidence_age_days for {competency_id!r} must be non-negative"
+            )
+        if not isinstance(result["reassessment_due"], bool):
+            raise FreshnessInputError(
+                f"reassessment_due for {competency_id!r} must be boolean"
+            )
+        normalized[competency_id] = result
+    return normalized
 
 
 def _json_default(value: object) -> str:
@@ -51,6 +108,7 @@ class EvidenceProjectionSource:
     session_anchor: str
     replay_hash: str
     competency_hits: tuple[str, ...]
+    freshness_inputs: dict[str, dict[str, Any]]
     captured_at_utc: datetime
 
 
@@ -172,28 +230,36 @@ def build_freshness_projections(
     computed_at = source.captured_at_utc
     if computed_at.tzinfo is None:
         computed_at = computed_at.replace(tzinfo=timezone.utc)
-    return tuple(
-        FreshnessProjection(
-            evidence_id=source.evidence_id,
-            assessment_kind=source.assessment_kind,
-            snapshot=SkillFreshnessSnapshot(
-                learner_pseudo_id=source.learner_pseudo_id,
-                competency_id=competency_id,
-                competency_after=1.0,
-                ability=1.0,
-                confidence=min(1.0, weight),
-                freshness=1.0,
-                evidence_age_days=0.0,
-                reassessment_due=False,
-                source_session_ids=(source.session_anchor,),
-                source_replay_hash=source.replay_hash,
-                computed_at=computed_at,
-                evidence_class=source.evidence_class,
-                evidence_weight=weight,
-            ),
+    projections = []
+    for competency_id in sorted(source.competency_hits):
+        inputs = source.freshness_inputs.get(competency_id)
+        if inputs is None:
+            raise ValueError(
+                f"missing persisted freshness inputs for competency {competency_id!r}"
+            )
+        projections.append(
+            FreshnessProjection(
+                evidence_id=source.evidence_id,
+                assessment_kind=source.assessment_kind,
+                snapshot=SkillFreshnessSnapshot(
+                    learner_pseudo_id=source.learner_pseudo_id,
+                    competency_id=competency_id,
+                    competency_before=inputs.get("competency_before"),
+                    competency_after=inputs["competency_after"],
+                    ability=inputs["ability"],
+                    confidence=inputs["confidence"],
+                    freshness=inputs["freshness"],
+                    evidence_age_days=inputs["evidence_age_days"],
+                    reassessment_due=inputs["reassessment_due"],
+                    source_session_ids=(source.session_anchor,),
+                    source_replay_hash=source.replay_hash,
+                    computed_at=computed_at,
+                    evidence_class=source.evidence_class,
+                    evidence_weight=weight,
+                ),
+            )
         )
-        for competency_id in sorted(source.competency_hits)
-    )
+    return tuple(projections)
 
 
 def publish_source(
@@ -231,6 +297,16 @@ def _loads_hits(raw: str) -> tuple[str, ...]:
     return tuple(value)
 
 
+def _loads_freshness_inputs(raw: str) -> dict[str, dict[str, Any]]:
+    value = json.loads(raw)
+    if not isinstance(value, dict) or not all(
+        isinstance(key, str) and isinstance(item, dict)
+        for key, item in value.items()
+    ):
+        raise ValueError("freshness_inputs_json must be a competency-keyed JSON object")
+    return value
+
+
 def sources_from_session(session: Session) -> tuple[EvidenceProjectionSource, ...]:
     sources: list[EvidenceProjectionSource] = []
     summative = session.scalars(select(SamvaadSummativeEvidenceRow)).all()
@@ -245,6 +321,7 @@ def sources_from_session(session: Session) -> tuple[EvidenceProjectionSource, ..
                 session_anchor=row.session_anchor,
                 replay_hash=row.transcript_digest,
                 competency_hits=_loads_hits(row.competency_hits_json),
+                freshness_inputs=_loads_freshness_inputs(row.freshness_inputs_json),
                 captured_at_utc=row.captured_at_utc,
             )
         )
@@ -258,6 +335,7 @@ def sources_from_session(session: Session) -> tuple[EvidenceProjectionSource, ..
                 session_anchor=row.session_anchor,
                 replay_hash=row.evidence_digest,
                 competency_hits=_loads_hits(row.competency_hits_json),
+                freshness_inputs=_loads_freshness_inputs(row.freshness_inputs_json),
                 captured_at_utc=row.captured_at_utc,
             )
         )

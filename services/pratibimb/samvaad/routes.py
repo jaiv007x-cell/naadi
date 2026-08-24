@@ -14,6 +14,7 @@ from services.pratibimb.ledger.db import ledger_session
 from services.pratibimb.ledger_read.deps import get_audit_sink
 from services.pratibimb.ledger_read.request_context import get_request_id
 from services.pratibimb.samvaad.dhaara_projection import (
+    FreshnessInputError,
     get_production_projection_sink,
 )
 from services.pratibimb.samvaad.summative_contract import SummativeEvidenceRejectedError
@@ -63,4 +64,9 @@ async def verify_samvaad_route(
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail={"error_kind": exc.error_kind, "message": str(exc)},
+        ) from exc
+    except FreshnessInputError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={"error_kind": "invalid_freshness_inputs", "message": str(exc)},
         ) from exc

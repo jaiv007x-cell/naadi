@@ -475,6 +475,7 @@ class SamvaadSummativeEvidenceRow(Base):
     evidence_class = Column(String, nullable=False)
     framework_citation_anchor = Column(String, nullable=True)
     competency_hits_json = Column(Text, nullable=False, default="[]")
+    freshness_inputs_json = Column(Text, nullable=False, default="{}")
     captured_at_utc = Column(DateTime(timezone=True), nullable=False, index=True)
 
 
@@ -510,5 +511,6 @@ class SamvaadFormativeEvidenceRow(Base):
     session_anchor = Column(String, nullable=False)
     matcher_parameters_json = Column(Text, nullable=False)
     competency_hits_json = Column(Text, nullable=False, default="[]")
+    freshness_inputs_json = Column(Text, nullable=False, default="{}")
     captured_at_utc = Column(DateTime(timezone=True), nullable=False, index=True)
 

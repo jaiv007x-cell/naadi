@@ -53,7 +53,7 @@ backend beneath `.d` capture without changing `.d` routing semantics.
 | # | Pin |
 |---|-----|
 | **Q1** | Dhaara granularity is **one `SkillFreshnessSnapshot` per competency hit**. Additive schema extension adds optional `evidence_class` + `evidence_weight`; SAMVAAD builders require both. Event envelope remains `type="freshness.snapshot"`; no endpoint-version bump. |
-| **Q2** | Reuse `ledger/db` session factory through injection. Migration **023** adds learner/session provenance to 021, adds `tenant_id`, `learner_pseudo_id`, `competency_hits_json`, and deterministic `evidence_digest` to 022, then enforces tenant-scoped UNIQUE keys. Existing rows use the fail-closed backfill procedure below. |
+| **Q2** | Reuse `ledger/db` session factory through injection. Migration **023** adds learner/session provenance and `freshness_inputs_json` to 021; adds `tenant_id`, `learner_pseudo_id`, `competency_hits_json`, `freshness_inputs_json`, and deterministic `evidence_digest` to 022; then enforces tenant-scoped UNIQUE keys. Existing rows use the fail-closed backfill procedure below. |
 | **Q3** | `assessment_kind` dispatches to 021/022. After commit, both paths publish the same snapshot schema. 021/022 remain authoritative; Dhaara is audit/freshness projection. Reconciliation converges to **exact match**. |
 | **Q4** | No decay cron or outbox in `.e`. Post-commit publish is fail-soft; scheduled/startup reconciliation heals misses (default 60s, clamp 15–600s, healthy bound ≤2 intervals; ops runbook). Deterministic rebuild uses the named source IDs/timestamps/digests/order below. |
 | **Q5** | No Drishti ingest and no capture-policy change. `verify_service.py` may switch projectors only; `.d` formative/summative results and the exactly-one verifier-audit Call site remain unchanged. |
@@ -95,9 +95,10 @@ it means “not yet projected” until reconciliation says otherwise.
 stores every field needed to build `SkillFreshnessSnapshot`. Migration 023 is
 therefore staged:
 
-1. Add nullable `learner_pseudo_id` + `session_anchor` to 021.
+1. Add nullable `learner_pseudo_id`, `session_anchor`, and
+   `freshness_inputs_json` to 021.
 2. Add nullable `tenant_id`, `learner_pseudo_id`, `competency_hits_json`, and
-   `evidence_digest` to 022.
+   `freshness_inputs_json`, and `evidence_digest` to 022.
 3. If either table is non-empty, require an operator-reviewed staging manifest
    keyed by `evidence_id` containing the missing tenant/learner/session/hit
    values. Do not infer tenant or learner from `submitted_by`,
@@ -134,6 +135,14 @@ forward-only once .e rows exist.
   does not collide, while an exact retry in the same provenance scope does.
 - **Digest:** snapshot `source_replay_hash` is the persisted
   `transcript_digest` (021) or `evidence_digest` (022).
+- **Freshness scalars:** each row persists `freshness_inputs_json`, keyed
+  exactly by competency ID. Every item contains `competency_before`,
+  `competency_after`, `ability`, `confidence`, `freshness`,
+  `evidence_age_days`, and `reassessment_due`. These are computed once by the
+  evaluation path before INSERT; projection and rebuild never invent defaults
+  or recompute them. Missing/mismatched inputs reject before commit.
+  **Post-walk countersign (2026-08-24): persist scalar inputs; do not use
+  projector bootstrap constants.**
 - **Order:** competency hits retain sealed list order inside one row; cross-row
   rebuild output uses `ORDER BY captured_at_utc ASC, evidence_id ASC`, then
   `competency_id ASC` within each row. Evidence ID is the same-timestamp

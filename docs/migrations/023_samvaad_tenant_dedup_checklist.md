@@ -10,7 +10,8 @@ after migration **022** and before the SAMVAAD.e application build.
 2. Count existing 021/022 rows. If either table is non-empty, prepare
    `samvaad_023_backfill_manifest` keyed by evidence table + evidence ID.
 3. Have `role:samvaad-ledger-oncall-lead` review tenant, learner, session,
-   competency-hit, and formative canonical-digest values.
+   competency-hit, per-competency freshness-input, and formative
+   canonical-digest values.
 4. Apply 023. Any missing manifest value halts before `NOT NULL` or UNIQUE DDL.
 5. Deploy SAMVAAD.e, resume capture, and run one manual exact reconciliation.
 
@@ -18,6 +19,7 @@ after migration **022** and before the SAMVAAD.e application build.
 
 - [ ] 021 has non-null `learner_pseudo_id` and `session_anchor`
 - [ ] 022 has non-null tenant, learner, competency hits, and evidence digest
+- [ ] Both tables have one persisted freshness-input object per competency hit
 - [ ] 021 rejects duplicate `(tenant_id, transcript_digest)`
 - [ ] 022 rejects duplicate `(tenant_id, evidence_digest)`
 - [ ] No tenant or learner value was inferred from submitter or transcript text

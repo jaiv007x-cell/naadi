@@ -8,7 +8,9 @@
     "assessment_mode": "practice"
   },
   "targeting": {
-    "roles": ["gnm"],
+    "roles": [
+      "gnm"
+    ],
     "competencies": [
       "cardiac.stemi",
       "ecg.inferior",
@@ -52,7 +54,8 @@
     "findings_present": [
       "inferior ST elevation on 12-lead ECG",
       "diaphoretic appearance",
-      "tachycardia"
+      "tachycardia at presentation",
+      "possible RV involvement (inferior / RCA territory)"
     ],
     "absent_findings": [
       "fever",
@@ -95,13 +98,22 @@
     },
     "deterioration_rules": [
       "vitals:pain_scale_initial=7",
+      "vitals:presentation=catecholamine_tachycardia",
       "vitals:untreated_hr_rise_after_s=300:+8",
       "vitals:untreated_sbp_drop_after_s=600:-12",
       "vitals:untreated_spo2_floor=94",
-      "ecg:territory=inferior",
+      "vitals:branch=bradyarrhythmia_after_s=420:hr_floor=48",
+      "vitals:branch=av_block_after_s=480:mobitz_ii_or_complete",
+      "ecg:territory=inferior_rca",
+      "ecg:sa_av_nodal_artery_risk=true",
       "ecg:st_elevation_present_at_t0=true",
       "ecg:evolution_window_s=600",
       "ecg:untreated_after_window=reciprocal_change_deepens",
+      "physiology:rv_infarct_possible=true",
+      "physiology:rv_preload_dependent=true",
+      "pharmacology:nitrate_contraindicated_if_rv=true",
+      "vitals:branch=rv_hypotension_after_nitrate:sbp_drop=-30",
+      "vitals:branch=rv_hypotension_untreated_after_s=600:sbp_floor=85",
       "troponin:qual_detectable_after_s=180",
       "troponin:curve=rising_through_scenario",
       "comorbidity_flag:T2DM_duration_y=8",
@@ -141,6 +153,6 @@
     ],
     "guideline_versions": [],
     "reviewed_at": null,
-    "content_hash": "e8eed6212e627d89262bbbcfedc5c89485f423f224e53ad13e6a978787cf013e"
+    "content_hash": "8277af1258b1385563fc5adae39f9f3d61f95df3005151acbe9381812c4e8df0"
   }
 }

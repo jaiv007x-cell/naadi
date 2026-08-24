@@ -29,7 +29,7 @@ directly.
 | Section | Status |
 |---------|--------|
 | `patient` | authored (demographics, `mr` language, Roman chief-complaint notes) |
-| `physiology` | authored (initial vitals, STEMI deterioration rule strings) |
+| `physiology` | authored (initial vitals + inferior-STEMI branches: brady/AV block, RV/nitrate) |
 | `clinical_truth` | authored (needed for STEMI substance; comorbidities via meds + `interaction.hidden_facts`) |
 | `identity` / `targeting` / `environment` | minimal scaffold so the fragment rehydrates |
 | `interaction.dialogue_constraints` | empty — see TODO |
@@ -48,6 +48,22 @@ reviewer. Learner-queue gold publish stays closed.
 
 Do not add YAML siblings unless a compile step is introduced that emits
 `blueprint_fragment.json`.
+
+### `null` vs `[]` — placeholder asymmetry
+
+These are **schema defaults**, not distinct authoring semantics:
+
+| Field | Value this pass | Meaning |
+|-------|-----------------|---------|
+| `grading_blueprint` | `null` | Optional object unset — unauthored rubric (post-`.e` fill) |
+| `interaction.dialogue_constraints` | `[]` | List default empty — unauthored dialogue (post-`.e` fill) |
+| `provenance.clinical_reviewer` / `reviewed_at` | `null` | Optional unset — draft tier, no clinician yet |
+| `clinical_truth.allergies` | `[]` | Deliberate clinical empty (“none known”), not a placeholder |
+
+Post-`.e` fill: replace `grading_blueprint: null` with an object, and replace
+`dialogue_constraints: []` with authored constraint strings. Do not read
+`[]` on dialogue as “validated no constraints.” Allergies `[]` *is*
+validated-empty clinical content.
 
 ## Language pin
 

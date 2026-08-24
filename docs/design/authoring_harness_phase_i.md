@@ -360,15 +360,22 @@ New surfaces · ARP product behavior · historical Prom rewrite · opening day-3
 
 ### Gate
 
-**I.c.2 countersigned.** Ship diff walk is the sole open gate. Review walk (locked):
+**Cutover PR merged — countersign closed 2026-08-24.** Three-point walk cleared (checklist boxes in PR description · annotation exact-match · diff-grep `status-list-v2-only@` clean on `9c71dd4`).
 
-| # | Pin |
-|---|-----|
-| **1** | §I.c vs [`i_c_ship_checklist.md`](../ops/i_c_ship_checklist.md) — **all boxes ticked in PR description** (bare checklist link ≠ walk) |
-| **2** | Annotation **exact-match**: `arp-surface-cutover@<tag> (sha:<sha>)` at emit site in runbook; near-variants → walk halts |
-| **3** | Cutover-only: `rg -n "status-list-v2-only@" docs/ops/` returns **no matches** in cutover PR (any hit → split before advance) |
+| Field | Value |
+|-------|-------|
+| **tag** | `v2.14.0` |
+| **cutover SHA** | `f1fe486fe9fb048ac982e0a4d4b49ae293cb9797` |
+| **ship commit** | `9c71dd4` |
+| **annotation (pinned)** | `arp-surface-cutover@v2.14.0 (sha:f1fe486fe9fb048ac982e0a4d4b49ae293cb9797)` |
+| **i_acceptance** | **58** = 51 + 7 (incl. `test_i_c_7` C2/P8 forensic); tip **61** with +3 ship-checklist meta |
 
-Send cutover-only ship diff when tag/SHA fill. No product slices until cutover merges.
+**Ops (2026-09-22) — no further review gate:** deploy `9c71dd4` on `v2.14.0` · drop Grafana annotation with pinned string · tick three post-deploy smoke boxes. Ship confirmation when smoke green, **or** open I.c.2 v2-only scope when that cutover is ready to walk.
+
+**Carry-forwards (unchanged):**
+1. I.c.2 v2-only deploy + `status-list-v2-only@…` (sole C3 clock-start)
+2. Day-30 delete PR after 30 consecutive zero days; C4 `increase(status_list_compat_coercion_total[1d]) > 0` resets window
+3. Owner: `role:authoring-platform-oncall-lead`
 
 ---
 
@@ -378,11 +385,11 @@ Send cutover-only ship diff when tag/SHA fill. No product slices until cutover m
 |-------|--------|
 | **I.a** | **Closed** — 28/28; migration 019 |
 | **I.b** | **Closed** — I.b.1 signed off; **51/51** |
-| **I.c.1** | **Closed** — 58/58; `surface="arp"` |
-| **I.c.2** | **Countersigned** — C4 landed; dual-annotation clock; day-30 file list named |
+| **I.c.1** | **Closed** — 58/58; `surface="arp"`; cutover PR merged |
+| **I.c.2** | **Countersigned** — C4 landed; cutover ship closed; **v2-only + C3 window pending** |
 
 ---
 
 ## Gate
 
-**I.c.2 countersigned.** Cutover ship fill ready for walk — tag `v2.14.0`, sha `f1fe486fe9fb048ac982e0a4d4b49ae293cb9797`, annotation `arp-surface-cutover@v2.14.0 (sha:f1fe486fe9fb048ac982e0a4d4b49ae293cb9797)` in runbook §I.c. Merge after three-point walk.
+**Cutover countersign closed.** Standing: ops annotation drop at **2026-09-22**, then either ship-confirmation or I.c.2 v2-only walk.

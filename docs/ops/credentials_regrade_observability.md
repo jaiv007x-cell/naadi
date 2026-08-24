@@ -130,9 +130,18 @@ Expected production `AUDIT_SINK_FAILURE_TOTAL.labels(...).inc()` sites — seven
 | **Spanning cutover (union-regex)** | Surface-only union is **unsafe** (pulls H regrade). Use surface union **plus** caller_kind: span queries that need “all ARP fail-closed in window” must filter ARP kinds. Example PromQL for metric rate still uses `surface=~"regrade|arp"` with Grafana cutover annotation; for **audit-row** forensics across the cutover: `caller_kind=~"ncvet_recompute|ncvet_arp_verifier"` (ARP) vs `ncvet_regrader` (H). Safe historical ARP window query intent: `surface=~"regrade|arp" AND caller_kind=~"ncvet_recompute|ncvet_arp_verifier"` |
 | **Pre-cutover ARP disambiguation** | Under `surface="regrade"`, ARP vs H: `caller_kind ∈ {ncvet_recompute, ncvet_arp_verifier}` (ARP) vs `caller_kind=ncvet_regrader` (H). Metric series alone cannot split pre-cutover ARP from H; `caller_kind` is the discriminator that makes the union-regex safe. |
 | **Ship checklist** | [`i_c_ship_checklist.md`](i_c_ship_checklist.md) — cutover-only diff; exact `arp-surface-cutover@…` |
-| **Compat delete** | [`i_c_2_compat_delete_checklist.md`](i_c_2_compat_delete_checklist.md) — separate deploy; `status-list-v2-only@…` |
+| **Compat delete** | [`i_c_2_compat_delete_checklist.md`](i_c_2_compat_delete_checklist.md) — 30-day window + day-30 delete |
+| **V2-only ship** | [`i_c_2_v2_only_ship_checklist.md`](i_c_2_v2_only_ship_checklist.md) — reader retirement; C3 clock-start |
 
 ### Compat coercion delete (I.c.2 C2–C4) — landed, not optional
+
+**V2-only land (C3 clock-start):**
+
+| Field | Pin |
+|-------|-----|
+| **Deploy identifier (v2-only)** | **TBD at ship** — record release tag + git commit SHA |
+| **Grafana annotation text** | `status-list-v2-only@<tag> (sha:<sha>)` at deploy timestamp — **sole C3 clock-start** |
+| **Ship checklist** | [`i_c_2_v2_only_ship_checklist.md`](i_c_2_v2_only_ship_checklist.md) |
 
 **Two Grafana annotations (do not conflate):**
 

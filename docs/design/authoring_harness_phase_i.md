@@ -350,9 +350,49 @@ Fail-closed registry: **seven** `file:function` anchors (five H-era + `arp/servi
 
 | Artifact | Path |
 |----------|------|
-| Surface cutover ship | [`i_c_ship_checklist.md`](../ops/i_c_ship_checklist.md) |
+| Surface cutover ship | [`i_c_ship_checklist.md`](../ops/i_c_ship_checklist.md) — **merged** |
+| V2-only reader retirement ship | [`i_c_2_v2_only_ship_checklist.md`](../ops/i_c_2_v2_only_ship_checklist.md) — **scope open** |
 | C3/C4 delete window | [`i_c_2_compat_delete_checklist.md`](../ops/i_c_2_compat_delete_checklist.md) |
 | Runbook pins | [`credentials_regrade_observability.md`](../ops/credentials_regrade_observability.md) §Compat coercion delete |
+
+---
+
+## I.c.2.1 — v2-only reader retirement (**scope open 2026-08-24**)
+
+**Goal:** Retire v1 status-list readers in production; drop `status-list-v2-only@…` annotation (C3 clock-start). **Not** day-30 compat-delete — shim stays until calendar window closes.
+
+**Belt target:** `h_acceptance` 44/44 → `i_acceptance` prior green + new I.c.2.1 cases (TBD at implement).
+
+### Product pins (v2-only deploy)
+
+| # | Pin |
+|---|-----|
+| **P1** | **Publish v2 only:** `CredentialStatusService._publish_snapshot` emits `status_list.v2` with `identifier_kind` + `identifier_id` on every entry |
+| **P2** | **Credential offline verify accepts v2:** `credentials/verify.py` verifies `status_list.v2` envelopes (not reject as unknown schema) |
+| **P3** | **ARP verify rejects v1 / missing-kind:** `arp/verify.py` — no inline `credential_id`-only coercion; v1 schema or entry without `identifier_kind` → reject (not coerce) |
+| **P4** | **Compat shim retained:** `normalize_status_list_entries` + `STATUS_LIST_COMPAT_COERCION_TOTAL` **remain in tree** until day-30 PR (counter should stay at zero post v2-only) |
+| **P5** | **Historical snapshots unchanged:** pre-v2-only `envelope_bytes` in DB not rewritten |
+
+### Ship diff scope (locked)
+
+| In scope | Out of scope |
+|----------|--------------|
+| P1–P3 product changes | Delete `normalize_status_list_entries` coercion branch |
+| Runbook v2-only deploy fill | `arp-surface-cutover@…` doc changes |
+| `status-list-v2-only@…` annotation template | Day-30 delete PR |
+| C4 alert wiring confirmation | Metric/sample rewrite |
+
+### Review walk (three points — mirror cutover)
+
+| # | Pin |
+|---|-----|
+| **1** | §I.c.2.1 vs [`i_c_2_v2_only_ship_checklist.md`](../ops/i_c_2_v2_only_ship_checklist.md) — all boxes ticked in PR description |
+| **2** | Annotation exact-match: `status-list-v2-only@<tag> (sha:<sha>)` at runbook emit site |
+| **3** | V2-only diff: `git show <commit> -- docs/ops/ \| rg "arp-surface-cutover@"` zero matches; **no** compat-delete removal in diff |
+
+### Non-goals
+
+Day-30 delete · new surfaces · ARP mint/verify behavior beyond status-list read path · bundling cutover annotation
 
 ### Non-goals
 
@@ -390,10 +430,13 @@ New surfaces · ARP product behavior · historical Prom rewrite · opening day-3
 | **I.a** | **Closed** — 28/28; migration 019 |
 | **I.b** | **Closed** — I.b.1 signed off; **51/51** |
 | **I.c.1** | **Closed** — 58/58; `surface="arp"`; cutover PR merged |
-| **I.c.2** | **Countersigned** — C4 landed; cutover ship closed; **v2-only + C3 window pending** |
+| **I.c.2** | **Countersigned** — cutover ship closed; v2-only + C3 window pending |
+| **I.c.2.1** | **Scope open** — v2-only reader retirement; ship checklist drafted |
 
 ---
 
 ## Gate
 
-**Cutover countersign closed.** Standing: ops annotation drop at **2026-09-22**, then either ship-confirmation or I.c.2 v2-only walk.
+**Cutover countersign closed.** Standing: ops annotation drop at **2026-09-22**, then ship-confirmation **or** I.c.2.1 v2-only walk (either order).
+
+**I.c.2.1 scope open** — v2-only ship checklist + product pins at §I.c.2.1. Next: implement P1–P3, then v2-only PR walk.

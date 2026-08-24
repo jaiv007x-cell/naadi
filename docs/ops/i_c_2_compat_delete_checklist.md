@@ -3,7 +3,7 @@
 **Owner:** `role:authoring-platform-oncall-lead`  
 **Companion:** [`credentials_regrade_observability.md`](credentials_regrade_observability.md) §Compat coercion delete · [`authoring_harness_phase_i.md`](../design/authoring_harness_phase_i.md) §I.c.2
 
-**Scope:** **Separate deploy / separate diff** from [`i_c_ship_checklist.md`](i_c_ship_checklist.md). Do not bundle v2-only annotation with cutover-only ship diff (C2 independence).
+**Scope:** **Separate deploy / separate diff** from [`i_c_ship_checklist.md`](i_c_ship_checklist.md). V2-only land uses [`i_c_2_v2_only_ship_checklist.md`](i_c_2_v2_only_ship_checklist.md). Do not bundle v2-only annotation with cutover-only ship diff (C2 independence).
 
 ## First-walk (scope open — before countersign)
 

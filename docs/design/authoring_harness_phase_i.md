@@ -385,4 +385,4 @@ Send cutover-only ship diff when tag/SHA fill. No product slices until cutover m
 
 ## Gate
 
-**I.c.2 countersigned.** Ship diff walk is the sole open gate — see I.c.2 gate (ticked PR boxes + exact-match annotation + cutover-only negative grep).
+**I.c.2 countersigned.** Cutover ship fill ready for walk — tag `v2.14.0`, sha `f1fe486fe9fb048ac982e0a4d4b49ae293cb9797`, annotation `arp-surface-cutover@v2.14.0 (sha:f1fe486fe9fb048ac982e0a4d4b49ae293cb9797)` in runbook §I.c. Merge after three-point walk.

@@ -121,8 +121,8 @@ Expected production `AUDIT_SINK_FAILURE_TOTAL.labels(...).inc()` sites — seven
 | Field | Pin |
 |-------|-----|
 | **Cutover date** | **2026-09-22** (deliberate co-schedule with H.c threshold review — threshold PR includes `arp` row) |
-| **Deploy identifier** | **TBD at ship** — record release tag + git commit SHA here |
-| **Grafana annotation text** | `arp-surface-cutover@<tag> (sha:<sha>)` at deploy timestamp — **not** bare timestamp |
+| **Deploy identifier** | **tag=`v2.14.0`** · **sha=`f1fe486fe9fb048ac982e0a4d4b49ae293cb9797`** (I.c.1 cutover deploy) |
+| **Grafana annotation text** | `arp-surface-cutover@v2.14.0 (sha:f1fe486fe9fb048ac982e0a4d4b49ae293cb9797)` at deploy timestamp — **not** bare timestamp |
 | **Historical invariant** | Pre-cutover `audit_sink_failure_total{surface="regrade"}` samples from ARP paths are **not rewritten**. Discontinuity is intentional: pre-I.c ARP used shared regrade surface; I.c introduced dedicated `arp` surface. Rewriting metric labels post-hoc would corrupt the forensic record. |
 | **Post-cutover ARP query** | `rate(audit_sink_failure_total{surface="arp"}[5m])` |
 | **H regrade (unchanged)** | `rate(audit_sink_failure_total{surface="regrade"}[5m])` — H mint/verify only after cutover |

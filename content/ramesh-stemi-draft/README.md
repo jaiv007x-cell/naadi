@@ -65,6 +65,21 @@ Post-`.e` fill: replace `grading_blueprint: null` with an object, and replace
 `[]` on dialogue as “validated no constraints.” Allergies `[]` *is*
 validated-empty clinical content.
 
+## Hypotension path stacking (declared semantics)
+
+The RV/nitrate trap has two SBP paths that can co-fire:
+
+1. Time-conditioned untreated floor: `rv_hypotension_untreated_after_s=600:sbp_floor=85`
+2. Event-conditioned nitrate trap: `rv_hypotension_after_nitrate:sbp_drop=-30`
+
+**Declared:** paths **stack relative-to-current with no floor clamp**. If untreated
+drift has already pulled SBP toward 85 and the learner then gives nitrates,
+`-30` applies to the current SBP and may land below 85. Sub-floor crash is
+intentional pedagogy for preload-dependent RV infarct — not a bug.
+
+Engine implementers must honor this when wiring `deterioration_rules`; do not
+discover clamp-vs-stack at runtime.
+
 ## Language pin
 
 - Native code: `mr` (Marathi). Hindi Roman companion strings live in
@@ -81,13 +96,19 @@ Do not resolve these on this branch:
    and `allow_implicit_cue` bindings belong in a post-`.e` dialogue pass.
 2. **9-hit rubric** — `grading_blueprint` stays `null`. Smoke harness
    keeps its 3-hit regression rubric elsewhere; full draft expands to
-   3 required + 6 supporting after `.e` merge.
+   3 required + 6 supporting after `.e` merge. **Carry-forward candidate:**
+   one supporting hit for **V4R / right-sided leads** to confirm RV
+   involvement (`physiology:rv_infarct_possible` is already a fact here;
+   recognition is the discoverable learner action).
 3. **Chief-complaint verbatim map** — V2 has no
    `chief_complaint_verbatim` key. Roman `mr`/`hi` strings are parked in
    `patient.persona_notes` until a schema-backed home exists (or migrate
    reintroduces them). Do not invent a parallel YAML field.
 4. **Case #2 (T2DM foot-ulcer, distinct persona)** — opens only after
    this case clears dry-run at 9 rubric hits.
+5. **Floor-stacking engine wire** — README semantics above are declared;
+   physio-engine enforcement of stack-relative-no-clamp lands with rule
+   execution, not in this content pass.
 
 ## Validate
 

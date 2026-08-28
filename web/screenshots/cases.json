@@ -1,0 +1,36 @@
+{
+  "url": "http://127.0.0.1:8080/cases",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "NAADI",
+      "hasCanvas": false,
+      "bodyTextLen": 1818,
+      "bodyTextHash": "a833bcd00032815d0b211a3adf941cf6a81d2fc0fa57da18a9d3ff9105ea95ea",
+      "bodyTextPrefix": "NAADI Pulse Ward OS Ledger PRATIBIMB — WARD Case library Three l",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/cases.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "NAADI",
+      "hasCanvas": false,
+      "bodyTextLen": 1818,
+      "bodyTextHash": "a833bcd00032815d0b211a3adf941cf6a81d2fc0fa57da18a9d3ff9105ea95ea",
+      "bodyTextPrefix": "NAADI Pulse Ward OS Ledger PRATIBIMB — WARD Case library Three l",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/cases-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/cases.json"
+}

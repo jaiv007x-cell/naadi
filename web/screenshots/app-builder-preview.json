@@ -1,0 +1,36 @@
+{
+  "url": "http://127.0.0.1:8080/",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "NAADI",
+      "hasCanvas": false,
+      "bodyTextLen": 2010,
+      "bodyTextHash": "1ccff8f5e51801beecabe8f1c2dd14adb305f1ea681c9bbf91398f32b39c2358",
+      "bodyTextPrefix": "NAADI Pulse Ward OS Ledger CLINICAL COMPETENCE OS Every ed-tech ",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-preview.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "NAADI",
+      "hasCanvas": false,
+      "bodyTextLen": 2010,
+      "bodyTextHash": "1ccff8f5e51801beecabe8f1c2dd14adb305f1ea681c9bbf91398f32b39c2358",
+      "bodyTextPrefix": "NAADI Pulse Ward OS Ledger CLINICAL COMPETENCE OS Every ed-tech ",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-preview-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/app-builder-preview.json"
+}

@@ -1,0 +1,108 @@
+[
+  {
+    "difficulty": 0.55,
+    "competency_tags": ["cardiac.stemi", "ecg.inferior", "communication.marathi", "emergency.triage"],
+    "demographics": {
+      "name": "Ramesh Kale",
+      "age": 47,
+      "sex": "M",
+      "occupation": "auto-rickshaw driver",
+      "state": "Maharashtra",
+      "city": "Nagpur",
+      "native_language": "mr",
+      "education_years": 5,
+      "monthly_income_inr": 14000
+    },
+    "chief_complaint_verbatim": {
+      "mr": "Doctor, chatit jad watatay, ghaam yetoy.",
+      "hi": "Doctor, seene mein bhaari lag raha hai, paseena aa raha hai."
+    },
+    "baseline_vitals": {"hr": 104, "sbp": 148, "dbp": 92, "spo2": 96, "rr": 20, "temp_c": 36.9},
+    "hidden": {
+      "primary_diagnosis": "Inferior wall STEMI",
+      "icd10": "I21.19",
+      "onset_minutes_ago": 40,
+      "symptoms_present": ["retrosternal chest pain", "diaphoresis", "jaw radiation", "nausea"],
+      "symptoms_absent": ["fever", "cough", "hematemesis"],
+      "comorbidities": ["T2DM 8y", "HTN 3y", "smoker 20 pack-years"],
+      "current_meds": ["metformin 500 BD", "amlodipine 5 OD"],
+      "allergies": [],
+      "social_history": {"alcohol": "occasional", "tobacco": "gutka daily"},
+      "red_herrings": ["patient blames 'gas' from lunch"]
+    },
+    "expected_actions": [
+      "greet_patient_in_native_language",
+      "take_focused_history",
+      "measure_vitals",
+      "order_ecg_within_10min",
+      "order_troponin",
+      "give_aspirin_325_chewed",
+      "give_atorvastatin_80",
+      "obtain_consent_transfer",
+      "arrange_pci_transfer"
+    ],
+    "critical_actions": [
+      "order_ecg_within_10min",
+      "give_aspirin_325_chewed",
+      "arrange_pci_transfer"
+    ],
+    "time_pressure_seconds": 900,
+    "family_present": true,
+    "resources_available": ["ecg", "troponin_qual", "aspirin", "atorvastatin", "ambulance"],
+    "red_flag": "MI",
+    "symptom_vocab": ["chest", "pain", "diaphoresis", "nausea", "fever", "cough", "jaw", "gas"],
+    "initial_pain": 7.0,
+    "persona_voice_id": "ramesh_kale_mr"
+  },
+  {
+    "case_id": "probe.stemi.inferior.v1",
+    "probe_only": true,
+    "difficulty": 0.55,
+    "competency_tags": ["cardiac.stemi", "ecg.inferior"],
+    "demographics": {
+      "name": "Probe Patient A",
+      "age": 47,
+      "sex": "M",
+      "occupation": "auto-rickshaw driver",
+      "state": "Maharashtra",
+      "city": "Nagpur",
+      "native_language": "mr",
+      "education_years": 5,
+      "monthly_income_inr": 14000
+    },
+    "chief_complaint_verbatim": {
+      "mr": "Doctor, chatit jad watatay.",
+      "hi": "Doctor, seene mein bhaari lag raha hai."
+    },
+    "baseline_vitals": {"hr": 104, "sbp": 148, "dbp": 92, "spo2": 96, "rr": 20, "temp_c": 36.9},
+    "hidden": {
+      "primary_diagnosis": "Inferior wall STEMI",
+      "icd10": "I21.19",
+      "onset_minutes_ago": 40,
+      "symptoms_present": ["retrosternal chest pain", "diaphoresis", "jaw radiation", "nausea"],
+      "symptoms_absent": ["fever", "cough", "hematemesis"],
+      "comorbidities": ["T2DM 8y", "HTN 3y", "smoker 20 pack-years"],
+      "current_meds": ["metformin 500 BD", "amlodipine 5 OD"],
+      "allergies": [],
+      "social_history": {"alcohol": "occasional", "tobacco": "gutka daily"},
+      "red_herrings": []
+    },
+    "expected_actions": [
+      "order_ecg_within_10min",
+      "give_aspirin_325_chewed",
+      "arrange_pci_transfer"
+    ],
+    "critical_actions": [
+      "order_ecg_within_10min",
+      "give_aspirin_325_chewed",
+      "arrange_pci_transfer"
+    ],
+    "time_pressure_seconds": 900,
+    "family_present": false,
+    "resources_available": ["ecg", "troponin_qual", "aspirin", "atorvastatin", "ambulance"],
+    "red_flag": "MI",
+    "symptom_vocab": ["chest", "pain", "diaphoresis", "nausea"],
+    "initial_pain": 7.0,
+    "persona_voice_id": "default_male_mr"
+  }
+]

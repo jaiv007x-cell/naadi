@@ -1,0 +1,3 @@
+commit 15c4a41
+https://github.com/jaiv007x-cell/naadi
+This preview runs the playable loop in-browser. The Python services (Pratibimb 8100, Dhaara 8200, Redis, JWT) are not the preview host. Grader + Ramesh physiology + anaphylaxis rubric are ported from this commit.

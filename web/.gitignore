@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.vercel/
+.tanstack/
+*.local
+.env
+.env.*
+!.grok/app-env.json
+artifacts/
+attachments/
+*.zip
+*.pdf

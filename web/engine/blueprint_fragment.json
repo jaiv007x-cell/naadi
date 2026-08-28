@@ -1,0 +1,158 @@
+{
+  "schema_version": "2.0.0",
+  "identity": {
+    "case_id": "ramesh_kale.stemi.inferior.v1",
+    "version": "1.0.0-draft-persona",
+    "title": "Ramesh Kale — inferior STEMI (persona + physiology draft)",
+    "corpus_tier": "draft",
+    "assessment_mode": "practice"
+  },
+  "targeting": {
+    "roles": [
+      "gnm"
+    ],
+    "competencies": [
+      "cardiac.stemi",
+      "ecg.inferior",
+      "communication.marathi",
+      "emergency.triage"
+    ],
+    "difficulty": 0.55,
+    "prerequisites": []
+  },
+  "patient": {
+    "demographics": {
+      "name": "Ramesh Kale",
+      "age": 47,
+      "sex": "M",
+      "occupation": "auto-rickshaw driver",
+      "state": "Maharashtra",
+      "city": "Nagpur",
+      "native_language": "mr",
+      "education_years": 5,
+      "monthly_income_inr": 14000
+    },
+    "language": "mr",
+    "voice_profile": "ramesh_kale_mr",
+    "literacy_years": 5,
+    "persona_notes": "Register: low health-literacy Marathi-first; short sentences; gas/acidity folk attribution common. Learner-facing chief complaint (Roman transliteration — not Devanagari): mr=\"Doctor, chatit jad watatay, ghaam yetoy.\"; hi=\"Doctor, seene mein bhaari lag raha hai, paseena aa raha hai.\" Code-switch English clinical terms (ECG, aspirin, PCI) unchanged when clinician uses them. Family attendant present at bedside."
+  },
+  "clinical_truth": {
+    "primary_diagnosis": "Inferior wall STEMI",
+    "icd10": "I21.19",
+    "differentials": [
+      "unstable angina",
+      "aortic dissection",
+      "acute gastritis / peptic ulcer"
+    ],
+    "symptoms_present": [
+      "retrosternal chest pain",
+      "diaphoresis",
+      "jaw radiation",
+      "nausea"
+    ],
+    "findings_present": [
+      "inferior ST elevation on 12-lead ECG",
+      "diaphoretic appearance",
+      "tachycardia at presentation",
+      "possible RV involvement (inferior / RCA territory)"
+    ],
+    "absent_findings": [
+      "fever",
+      "cough",
+      "hematemesis",
+      "asymmetric pulses"
+    ],
+    "allergies": [],
+    "medications": [
+      "metformin 500 BD",
+      "amlodipine 5 OD"
+    ],
+    "onset_minutes_ago": 40
+  },
+  "environment": {
+    "setting": "district_ed",
+    "resources": [
+      "ecg",
+      "troponin_qual",
+      "aspirin",
+      "atorvastatin",
+      "ambulance"
+    ],
+    "distractors": [
+      "patient blames gas from lunch"
+    ],
+    "difficulty_parameters": {
+      "time_pressure_seconds": 900
+    }
+  },
+  "physiology": {
+    "engine_version": "0.2.0",
+    "initial_vitals": {
+      "hr": 104.0,
+      "sbp": 148.0,
+      "dbp": 92.0,
+      "spo2": 96.0,
+      "rr": 20.0,
+      "temp_c": 36.9
+    },
+    "deterioration_rules": [
+      "vitals:pain_scale_initial=7",
+      "vitals:presentation=catecholamine_tachycardia",
+      "vitals:untreated_hr_rise_after_s=300:+8",
+      "vitals:untreated_sbp_drop_after_s=600:-12",
+      "vitals:untreated_spo2_floor=94",
+      "vitals:branch=bradyarrhythmia_after_s=420:hr_floor=48",
+      "vitals:branch=av_block_after_s=480:mobitz_ii_or_complete",
+      "ecg:territory=inferior_rca",
+      "ecg:sa_av_nodal_artery_risk=true",
+      "ecg:st_elevation_present_at_t0=true",
+      "ecg:evolution_window_s=600",
+      "ecg:untreated_after_window=reciprocal_change_deepens",
+      "physiology:rv_infarct_possible=true",
+      "physiology:rv_preload_dependent=true",
+      "pharmacology:nitrate_contraindicated_if_rv=true",
+      "vitals:branch=rv_hypotension_after_nitrate:sbp_drop=-30",
+      "vitals:branch=rv_hypotension_untreated_after_s=600:sbp_floor=85",
+      "troponin:qual_detectable_after_s=180",
+      "troponin:curve=rising_through_scenario",
+      "comorbidity_flag:T2DM_duration_y=8",
+      "comorbidity_flag:HTN_duration_y=3",
+      "comorbidity_flag:tobacco=gutka_daily",
+      "comorbidity_flag:smoker_pack_years=20",
+      "red_flag:MI"
+    ],
+    "pharmacology_profile": "default"
+  },
+  "interaction": {
+    "allowed_disclosures": [
+      "retrosternal chest pain",
+      "diaphoresis",
+      "jaw radiation",
+      "nausea"
+    ],
+    "hidden_facts": [
+      "T2DM 8y",
+      "HTN 3y",
+      "smoker 20 pack-years",
+      "gutka daily",
+      "alcohol occasional",
+      "blames gas from lunch"
+    ],
+    "family_personas": [
+      "attendant"
+    ],
+    "dialogue_constraints": []
+  },
+  "grading_blueprint": null,
+  "provenance": {
+    "author": "content/ramesh-stemi-draft",
+    "clinical_reviewer": null,
+    "sources": [
+      "services/pratibimb/app/case_gen/seed_corpus.json#Ramesh Kale"
+    ],
+    "guideline_versions": [],
+    "reviewed_at": null,
+    "content_hash": "8277af1258b1385563fc5adae39f9f3d61f95df3005151acbe9381812c4e8df0"
+  }
+}

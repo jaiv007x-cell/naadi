@@ -2,7 +2,7 @@
   "schema_version": "2.0.0",
   "identity": {
     "case_id": "ramesh_kale.stemi.inferior.v1",
-    "version": "1.0.0-draft-persona",
+    "version": "1.0.0-draft-dialogue",
     "title": "Ramesh Kale — inferior STEMI (persona + physiology draft)",
     "corpus_tier": "draft",
     "assessment_mode": "practice"
@@ -103,7 +103,10 @@
       "vitals:untreated_sbp_drop_after_s=600:-12",
       "vitals:untreated_spo2_floor=94",
       "vitals:branch=bradyarrhythmia_after_s=420:hr_floor=48",
-      "vitals:branch=av_block_after_s=480:mobitz_ii_or_complete",
+      "vitals:branch=first_degree_av_block_after_s=480:pr_prolongation=true",
+      "vitals:branch=mobitz_i_wenckebach_after_s=540:progression=rca_inferior",
+      "vitals:branch=complete_heart_block_after_s=600:hr_floor=40",
+      "pharmacology:atropine_response_symptomatic_brady:hr_rise=+15",
       "ecg:territory=inferior_rca",
       "ecg:sa_av_nodal_artery_risk=true",
       "ecg:st_elevation_present_at_t0=true",
@@ -112,8 +115,9 @@
       "physiology:rv_infarct_possible=true",
       "physiology:rv_preload_dependent=true",
       "pharmacology:nitrate_contraindicated_if_rv=true",
-      "vitals:branch=rv_hypotension_after_nitrate:sbp_drop=-30",
+      "vitals:branch=rv_hypotension_after_nitrate:sbp_drop=-30:within_ticks=3",
       "vitals:branch=rv_hypotension_untreated_after_s=600:sbp_floor=85",
+      "vitals:branch=rv_hypotension_after_fluid_bolus:sbp_recovery=+20",
       "troponin:qual_detectable_after_s=180",
       "troponin:curve=rising_through_scenario",
       "comorbidity_flag:T2DM_duration_y=8",
@@ -142,9 +146,158 @@
     "family_personas": [
       "attendant"
     ],
-    "dialogue_constraints": []
+    "dialogue_constraints": [
+      "turn_budget:20-30",
+      "register:mr_roman_transliteration:code_switch_clinical_english",
+      "opening:attendant_present:gas_attribution_distractor",
+      "branch:order_ecg_12l:unlocks:inferior_st_elevation_disclosure",
+      "branch:order_ecg_right_sided:discoverable:rv_infarct_possible",
+      "branch:nitrate_admin:gated:rv_flag_cleared_or_v4r_negative",
+      "branch:rv_hypotension_after_nitrate:fluid_bolus_rescue_path",
+      "branch:symptomatic_brady:atropine_responsive_inferior_av_block",
+      "cue:empathy_window:min_occurrences_per_turn=2",
+      "cue:allow_implicit_cue:gas_distractor_redirect"
+    ]
   },
-  "grading_blueprint": null,
+  "grading_blueprint": {
+    "case_id": "ramesh_kale.stemi.inferior.v1",
+    "case_version": "1.0.0-draft-dialogue",
+    "rubric_version": "0.2.0-draft-9hit",
+    "display_name": "Ramesh Kale — inferior STEMI (9-hit draft rubric)",
+    "pass_threshold": 0.7,
+    "hits": [
+      {
+        "id": "stemi.inferior_ecg_recognized",
+        "axis": "diagnostic",
+        "matcher": "finding_recognized",
+        "params": {
+          "finding_id": "inferior_st_elevation",
+          "within_s": 600
+        },
+        "points": 12.0,
+        "severity": "critical",
+        "required": true,
+        "fail_case_on_violation": true,
+        "description": "Recognizes inferior STEMI on initial 12-lead ECG"
+      },
+      {
+        "id": "stemi.v4r_before_nitrates",
+        "axis": "safety",
+        "matcher": "order_placed",
+        "params": {
+          "order_id": "ecg_right_sided",
+          "within_s": 900
+        },
+        "points": 15.0,
+        "severity": "critical",
+        "required": true,
+        "fail_case_on_violation": true,
+        "description": "Requests right-sided leads / identifies RV involvement before nitrates"
+      },
+      {
+        "id": "stemi.rv_hypotension_fluid_rescue",
+        "axis": "action",
+        "matcher": "drug_given",
+        "params": {
+          "drug_id": "iv_fluid_ns",
+          "route": "IV",
+          "within_s": 900
+        },
+        "points": 12.0,
+        "severity": "critical",
+        "required": true,
+        "fail_case_on_violation": true,
+        "description": "Fluid bolus rescue on RV preload-dependent hypotension"
+      },
+      {
+        "id": "stemi.aspirin_timing",
+        "axis": "action",
+        "matcher": "drug_given",
+        "params": {
+          "drug_id": "aspirin",
+          "route": "PO",
+          "min_dose": 300,
+          "max_dose": 350,
+          "within_s": 600
+        },
+        "points": 8.0,
+        "severity": "major",
+        "required": false,
+        "fail_case_on_violation": false,
+        "description": "Aspirin 325 mg chewed within 10 minutes"
+      },
+      {
+        "id": "stemi.pain_reassessment",
+        "axis": "action",
+        "matcher": "vital_recognized",
+        "params": {
+          "vital_id": "pain_scale",
+          "within_s": 900
+        },
+        "points": 5.0,
+        "severity": "minor",
+        "required": false,
+        "fail_case_on_violation": false,
+        "description": "Reassesses pain scale after analgesia or intervention"
+      },
+      {
+        "id": "stemi.communication_register",
+        "axis": "communication",
+        "matcher": "action_within",
+        "params": {
+          "action_id": "greet_patient_in_native_language",
+          "within_s": 120
+        },
+        "points": 6.0,
+        "severity": "minor",
+        "required": false,
+        "fail_case_on_violation": false,
+        "description": "Marathi-first Roman register with code-switched clinical English"
+      },
+      {
+        "id": "stemi.atropine_symptomatic_brady",
+        "axis": "action",
+        "matcher": "drug_given",
+        "params": {
+          "drug_id": "atropine",
+          "within_s": 900
+        },
+        "points": 8.0,
+        "severity": "major",
+        "required": false,
+        "fail_case_on_violation": false,
+        "description": "Atropine for symptomatic bradycardia / AV block (inferior RCA)"
+      },
+      {
+        "id": "stemi.cath_lab_activation",
+        "axis": "action",
+        "matcher": "escalation",
+        "params": {
+          "target": "pci_transfer",
+          "within_s": 900
+        },
+        "points": 6.0,
+        "severity": "minor",
+        "required": false,
+        "fail_case_on_violation": false,
+        "description": "PCI-capable transfer arranged"
+      },
+      {
+        "id": "stemi.allergy_check",
+        "axis": "safety",
+        "matcher": "symptom_elicited",
+        "params": {
+          "symptom_id": "drug_allergy",
+          "within_s": 300
+        },
+        "points": 4.0,
+        "severity": "minor",
+        "required": false,
+        "fail_case_on_violation": false,
+        "description": "Allergy history elicited before aspirin"
+      }
+    ]
+  },
   "provenance": {
     "author": "content/ramesh-stemi-draft",
     "clinical_reviewer": null,
@@ -153,6 +306,6 @@
     ],
     "guideline_versions": [],
     "reviewed_at": null,
-    "content_hash": "8277af1258b1385563fc5adae39f9f3d61f95df3005151acbe9381812c4e8df0"
+    "content_hash": "80e29c6e203589f222c21115f4e85d22187de5524ea72c88b2235cd3f847df57"
   }
 }

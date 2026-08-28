@@ -3,9 +3,8 @@
 Branch: `content/ramesh-stemi-draft` (off `main`).
 
 **Purpose:** extend the seeded Ramesh Kale inferior-STEMI persona for
-engine-validation drafts. Persona + physiology only in this pass.
-Dialogue trees and the 9-hit rubric wait until `feat/samvaad-e` lands on
-`main`. No leakage into the three-PR merge chain.
+engine-validation drafts. Persona + physiology + post-`.e` dialogue/rubric
+scaffold. No leakage into the SAMVAAD three-PR merge chain.
 
 ## Runtime artifact
 
@@ -18,97 +17,75 @@ document** whose top-level keys match `blueprint_json`:
 
 File: [`blueprint_fragment.json`](./blueprint_fragment.json)
 
-There are **no** orphan `persona.yaml` / `physio_envelope.yaml` packs.
-If a future pass stages split sources for authoring ergonomics, those
-files are staging only — a compile step must emit this single JSON, and
-the staging convention must be named here. Until then, edit the JSON
-directly.
+Rubric source pin: `services/pratibimb/authoring/ramesh_draft_rubric.py`
+(merged into JSON; no orphan YAML).
 
 ## This pass — authored sections
 
 | Section | Status |
 |---------|--------|
 | `patient` | authored (demographics, `mr` language, Roman chief-complaint notes) |
-| `physiology` | authored (initial vitals + inferior-STEMI branches: brady/AV block, RV/nitrate) |
-| `clinical_truth` | authored (needed for STEMI substance; comorbidities via meds + `interaction.hidden_facts`) |
+| `physiology` | authored (28 deterioration rules — inferior STEMI, staged AV block, RV/nitrate) |
+| `clinical_truth` | authored (comorbidities via meds + `interaction.hidden_facts`) |
 | `identity` / `targeting` / `environment` | minimal scaffold so the fragment rehydrates |
-| `interaction.dialogue_constraints` | empty — see TODO |
-| `grading_blueprint` | `null` — see TODO |
+| `interaction.dialogue_constraints` | **authored** (10-branch scaffold) |
+| `grading_blueprint` | **authored** (9 hits: 3 required / 6 supporting) |
 
 `corpus_tier` is `draft`. `assessment_mode` is `practice`. No clinical
 reviewer. Learner-queue gold publish stays closed.
 
-## Staging convention (explicit)
+**Content hash (pinned):** `80e29c6e203589f222c21115f4e85d22187de5524ea72c88b2235cd3f847df57`
 
-| Kind | Path | Consumed by runtime? |
-|------|------|----------------------|
-| Blueprint fragment (JSON) | `content/ramesh-stemi-draft/blueprint_fragment.json` | Yes — target shape for `CaseDraftStore.blueprint_json` |
-| This README | `content/ramesh-stemi-draft/README.md` | No — authoring notes only |
-| Validate helper | `content/ramesh-stemi-draft/validate_fragment.py` | No — local schema gate |
+## Clinical countersign (fragment walk)
 
-Do not add YAML siblings unless a compile step is introduced that emits
-`blueprint_fragment.json`.
+**Verdict: countersigned** after Mobitz II amendment and staged-progression pin.
 
-### `null` vs `[]` — placeholder asymmetry
+| Check | Result |
+|-------|--------|
+| Mobitz II absent | ✓ removed — anterior His-Purkinje pattern forbidden in inferior RCA envelope |
+| Staged AV block progression | ✓ brady (T+420) → 1° AV (T+480) → Mobitz I (T+540) → CHB (T+600) |
+| Atropine response | ✓ `atropine_response_symptomatic_brady:hr_rise=+15` |
+| RV nitrate trap | ✓ steep drop `sbp_drop=-30:within_ticks=3`; stacks with untreated floor |
+| RV fluid rescue | ✓ `rv_hypotension_after_fluid_bolus:sbp_recovery=+20` |
+| Rule order determinism | ✓ array order is authored evaluation order (stable dry-run pin) |
 
-These are **schema defaults**, not distinct authoring semantics:
+Prior hash `8277af12…` superseded by amendment (Mobitz II → staged block family).
 
-| Field | Value this pass | Meaning |
-|-------|-----------------|---------|
-| `grading_blueprint` | `null` | Optional object unset — unauthored rubric (post-`.e` fill) |
-| `interaction.dialogue_constraints` | `[]` | List default empty — unauthored dialogue (post-`.e` fill) |
-| `provenance.clinical_reviewer` / `reviewed_at` | `null` | Optional unset — draft tier, no clinician yet |
-| `clinical_truth.allergies` | `[]` | Deliberate clinical empty (“none known”), not a placeholder |
+## Rubric (9 hits)
 
-Post-`.e` fill: replace `grading_blueprint: null` with an object, and replace
-`dialogue_constraints: []` with authored constraint strings. Do not read
-`[]` on dialogue as “validated no constraints.” Allergies `[]` *is*
-validated-empty clinical content.
+**Required trio (pedagogical spine):**
+
+1. `stemi.inferior_ecg_recognized` — inferior STEMI on initial ECG
+2. `stemi.v4r_before_nitrates` — right-sided leads before nitrates (RV discoverable)
+3. `stemi.rv_hypotension_fluid_rescue` — fluid bolus rescue on preload-dependent hypotension
+
+**Supporting six:** aspirin timing, pain reassessment, communication register,
+atropine on symptomatic brady, cath lab activation, allergy check.
+
+Smoke harness keeps its separate 3-hit regression rubric in
+`services/pratibimb/authoring/ramesh_smoke.py`.
 
 ## Hypotension path stacking (declared semantics)
 
 The RV/nitrate trap has two SBP paths that can co-fire:
 
 1. Time-conditioned untreated floor: `rv_hypotension_untreated_after_s=600:sbp_floor=85`
-2. Event-conditioned nitrate trap: `rv_hypotension_after_nitrate:sbp_drop=-30`
+2. Event-conditioned nitrate trap: `rv_hypotension_after_nitrate:sbp_drop=-30:within_ticks=3`
 
-**Declared:** paths **stack relative-to-current with no floor clamp**. If untreated
-drift has already pulled SBP toward 85 and the learner then gives nitrates,
-`-30` applies to the current SBP and may land below 85. Sub-floor crash is
-intentional pedagogy for preload-dependent RV infarct — not a bug.
-
-Engine implementers must honor this when wiring `deterioration_rules`; do not
-discover clamp-vs-stack at runtime.
+**Declared:** paths **stack relative-to-current with no floor clamp**. Sub-floor
+crash is intentional pedagogy for preload-dependent RV infarct — not a bug.
 
 ## Language pin
 
-- Native code: `mr` (Marathi). Hindi Roman companion strings live in
-  `patient.persona_notes` only.
-- Learner-facing complaint phrasing: **Roman transliteration**, matching
-  `seed_corpus.json`. No Devanagari in this draft.
+- Native code: `mr` (Marathi). Roman transliteration in `patient.persona_notes`.
+- No Devanagari in this draft.
 
-## TODO — park until `.e` on `main`
+## TODO — still open
 
-Do not resolve these on this branch:
-
-1. **Dialogue constraints / turn graph** — `interaction.dialogue_constraints`
-   stays `[]`. Empathy windows, cue anchors, `min_occurrences_per_turn`,
-   and `allow_implicit_cue` bindings belong in a post-`.e` dialogue pass.
-2. **9-hit rubric** — `grading_blueprint` stays `null`. Smoke harness
-   keeps its 3-hit regression rubric elsewhere; full draft expands to
-   3 required + 6 supporting after `.e` merge. **Carry-forward candidate:**
-   one supporting hit for **V4R / right-sided leads** to confirm RV
-   involvement (`physiology:rv_infarct_possible` is already a fact here;
-   recognition is the discoverable learner action).
-3. **Chief-complaint verbatim map** — V2 has no
-   `chief_complaint_verbatim` key. Roman `mr`/`hi` strings are parked in
-   `patient.persona_notes` until a schema-backed home exists (or migrate
-   reintroduces them). Do not invent a parallel YAML field.
-4. **Case #2 (T2DM foot-ulcer, distinct persona)** — opens only after
-   this case clears dry-run at 9 rubric hits.
-5. **Floor-stacking engine wire** — README semantics above are declared;
-   physio-engine enforcement of stack-relative-no-clamp lands with rule
-   execution, not in this content pass.
+1. **Chief-complaint verbatim map** — parked in `persona_notes` until schema home exists.
+2. **Case #2 (Baby Aarav neonatal sepsis)** — opens after this case dry-runs at 9 hits.
+3. **Floor-stacking engine wire** — README semantics declared; physio-engine enforcement lands with rule execution.
+4. **Turn-graph dialogue seeds** — constraint scaffold present; Meera/Aarav dialogue lines are next authoring pass.
 
 ## Validate
 
@@ -116,6 +93,5 @@ Do not resolve these on this branch:
 python content/ramesh-stemi-draft/validate_fragment.py
 ```
 
-Gate: rehydrates via `blueprint_from_case_json`, `validation_errors()`
-empty for practice/draft, no `grading_blueprint` hits, no dialogue-turn
-or rubric-criterion references in authored string fields.
+Gate: rehydrates via `blueprint_from_case_json`, clinical physiology pins,
+9-hit rubric compile, dialogue scaffold pin, `content_hash` match.

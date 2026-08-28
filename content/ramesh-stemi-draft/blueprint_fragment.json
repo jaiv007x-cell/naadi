@@ -1,0 +1,311 @@
+{
+  "schema_version": "2.0.0",
+  "identity": {
+    "case_id": "ramesh_kale.stemi.inferior.v1",
+    "version": "1.0.0-draft-dialogue",
+    "title": "Ramesh Kale — inferior STEMI (persona + physiology draft)",
+    "corpus_tier": "draft",
+    "assessment_mode": "practice"
+  },
+  "targeting": {
+    "roles": [
+      "gnm"
+    ],
+    "competencies": [
+      "cardiac.stemi",
+      "ecg.inferior",
+      "communication.marathi",
+      "emergency.triage"
+    ],
+    "difficulty": 0.55,
+    "prerequisites": []
+  },
+  "patient": {
+    "demographics": {
+      "name": "Ramesh Kale",
+      "age": 47,
+      "sex": "M",
+      "occupation": "auto-rickshaw driver",
+      "state": "Maharashtra",
+      "city": "Nagpur",
+      "native_language": "mr",
+      "education_years": 5,
+      "monthly_income_inr": 14000
+    },
+    "language": "mr",
+    "voice_profile": "ramesh_kale_mr",
+    "literacy_years": 5,
+    "persona_notes": "Register: low health-literacy Marathi-first; short sentences; gas/acidity folk attribution common. Learner-facing chief complaint (Roman transliteration — not Devanagari): mr=\"Doctor, chatit jad watatay, ghaam yetoy.\"; hi=\"Doctor, seene mein bhaari lag raha hai, paseena aa raha hai.\" Code-switch English clinical terms (ECG, aspirin, PCI) unchanged when clinician uses them. Family attendant present at bedside."
+  },
+  "clinical_truth": {
+    "primary_diagnosis": "Inferior wall STEMI",
+    "icd10": "I21.19",
+    "differentials": [
+      "unstable angina",
+      "aortic dissection",
+      "acute gastritis / peptic ulcer"
+    ],
+    "symptoms_present": [
+      "retrosternal chest pain",
+      "diaphoresis",
+      "jaw radiation",
+      "nausea"
+    ],
+    "findings_present": [
+      "inferior ST elevation on 12-lead ECG",
+      "diaphoretic appearance",
+      "tachycardia at presentation",
+      "possible RV involvement (inferior / RCA territory)"
+    ],
+    "absent_findings": [
+      "fever",
+      "cough",
+      "hematemesis",
+      "asymmetric pulses"
+    ],
+    "allergies": [],
+    "medications": [
+      "metformin 500 BD",
+      "amlodipine 5 OD"
+    ],
+    "onset_minutes_ago": 40
+  },
+  "environment": {
+    "setting": "district_ed",
+    "resources": [
+      "ecg",
+      "troponin_qual",
+      "aspirin",
+      "atorvastatin",
+      "ambulance"
+    ],
+    "distractors": [
+      "patient blames gas from lunch"
+    ],
+    "difficulty_parameters": {
+      "time_pressure_seconds": 900
+    }
+  },
+  "physiology": {
+    "engine_version": "0.2.0",
+    "initial_vitals": {
+      "hr": 104.0,
+      "sbp": 148.0,
+      "dbp": 92.0,
+      "spo2": 96.0,
+      "rr": 20.0,
+      "temp_c": 36.9
+    },
+    "deterioration_rules": [
+      "vitals:pain_scale_initial=7",
+      "vitals:presentation=catecholamine_tachycardia",
+      "vitals:untreated_hr_rise_after_s=300:+8",
+      "vitals:untreated_sbp_drop_after_s=600:-12",
+      "vitals:untreated_spo2_floor=94",
+      "vitals:branch=bradyarrhythmia_after_s=420:hr_floor=48",
+      "vitals:branch=first_degree_av_block_after_s=480:pr_prolongation=true",
+      "vitals:branch=mobitz_i_wenckebach_after_s=540:progression=rca_inferior",
+      "vitals:branch=complete_heart_block_after_s=600:hr_floor=40",
+      "pharmacology:atropine_response_symptomatic_brady:hr_rise=+15",
+      "ecg:territory=inferior_rca",
+      "ecg:sa_av_nodal_artery_risk=true",
+      "ecg:st_elevation_present_at_t0=true",
+      "ecg:evolution_window_s=600",
+      "ecg:untreated_after_window=reciprocal_change_deepens",
+      "physiology:rv_infarct_possible=true",
+      "physiology:rv_preload_dependent=true",
+      "pharmacology:nitrate_contraindicated_if_rv=true",
+      "vitals:branch=rv_hypotension_after_nitrate:sbp_drop=-30:within_ticks=3",
+      "vitals:branch=rv_hypotension_untreated_after_s=600:sbp_floor=85",
+      "vitals:branch=rv_hypotension_after_fluid_bolus:sbp_recovery=+20",
+      "troponin:qual_detectable_after_s=180",
+      "troponin:curve=rising_through_scenario",
+      "comorbidity_flag:T2DM_duration_y=8",
+      "comorbidity_flag:HTN_duration_y=3",
+      "comorbidity_flag:tobacco=gutka_daily",
+      "comorbidity_flag:smoker_pack_years=20",
+      "red_flag:MI"
+    ],
+    "pharmacology_profile": "default"
+  },
+  "interaction": {
+    "allowed_disclosures": [
+      "retrosternal chest pain",
+      "diaphoresis",
+      "jaw radiation",
+      "nausea"
+    ],
+    "hidden_facts": [
+      "T2DM 8y",
+      "HTN 3y",
+      "smoker 20 pack-years",
+      "gutka daily",
+      "alcohol occasional",
+      "blames gas from lunch"
+    ],
+    "family_personas": [
+      "attendant"
+    ],
+    "dialogue_constraints": [
+      "turn_budget:20-30",
+      "register:mr_roman_transliteration:code_switch_clinical_english",
+      "opening:attendant_present:gas_attribution_distractor",
+      "branch:order_ecg_12l:unlocks:inferior_st_elevation_disclosure",
+      "branch:order_ecg_right_sided:discoverable:rv_infarct_possible",
+      "branch:nitrate_admin:gated:rv_flag_cleared_or_v4r_negative",
+      "branch:rv_hypotension_after_nitrate:fluid_bolus_rescue_path",
+      "branch:symptomatic_brady:atropine_responsive_inferior_av_block",
+      "cue:empathy_window:min_occurrences_per_turn=2",
+      "cue:allow_implicit_cue:gas_distractor_redirect"
+    ]
+  },
+  "grading_blueprint": {
+    "case_id": "ramesh_kale.stemi.inferior.v1",
+    "case_version": "1.0.0-draft-dialogue",
+    "rubric_version": "0.2.0-draft-9hit",
+    "display_name": "Ramesh Kale — inferior STEMI (9-hit draft rubric)",
+    "pass_threshold": 0.7,
+    "hits": [
+      {
+        "id": "stemi.inferior_ecg_recognized",
+        "axis": "diagnostic",
+        "matcher": "finding_recognized",
+        "params": {
+          "finding_id": "inferior_st_elevation",
+          "within_s": 600
+        },
+        "points": 12.0,
+        "severity": "critical",
+        "required": true,
+        "fail_case_on_violation": true,
+        "description": "Recognizes inferior STEMI on initial 12-lead ECG"
+      },
+      {
+        "id": "stemi.v4r_before_nitrates",
+        "axis": "safety",
+        "matcher": "order_placed",
+        "params": {
+          "order_id": "ecg_right_sided",
+          "within_s": 900
+        },
+        "points": 15.0,
+        "severity": "critical",
+        "required": true,
+        "fail_case_on_violation": true,
+        "description": "Requests right-sided leads / identifies RV involvement before nitrates"
+      },
+      {
+        "id": "stemi.rv_hypotension_fluid_rescue",
+        "axis": "action",
+        "matcher": "drug_given",
+        "params": {
+          "drug_id": "iv_fluid_ns",
+          "route": "IV",
+          "within_s": 900
+        },
+        "points": 12.0,
+        "severity": "critical",
+        "required": true,
+        "fail_case_on_violation": true,
+        "description": "Fluid bolus rescue on RV preload-dependent hypotension"
+      },
+      {
+        "id": "stemi.aspirin_timing",
+        "axis": "action",
+        "matcher": "drug_given",
+        "params": {
+          "drug_id": "aspirin",
+          "route": "PO",
+          "min_dose": 300,
+          "max_dose": 350,
+          "within_s": 600
+        },
+        "points": 8.0,
+        "severity": "major",
+        "required": false,
+        "fail_case_on_violation": false,
+        "description": "Aspirin 325 mg chewed within 10 minutes"
+      },
+      {
+        "id": "stemi.pain_reassessment",
+        "axis": "action",
+        "matcher": "vital_recognized",
+        "params": {
+          "vital_id": "pain_scale",
+          "within_s": 900
+        },
+        "points": 5.0,
+        "severity": "minor",
+        "required": false,
+        "fail_case_on_violation": false,
+        "description": "Reassesses pain scale after analgesia or intervention"
+      },
+      {
+        "id": "stemi.communication_register",
+        "axis": "communication",
+        "matcher": "action_within",
+        "params": {
+          "action_id": "greet_patient_in_native_language",
+          "within_s": 120
+        },
+        "points": 6.0,
+        "severity": "minor",
+        "required": false,
+        "fail_case_on_violation": false,
+        "description": "Marathi-first Roman register with code-switched clinical English"
+      },
+      {
+        "id": "stemi.atropine_symptomatic_brady",
+        "axis": "action",
+        "matcher": "drug_given",
+        "params": {
+          "drug_id": "atropine",
+          "within_s": 900
+        },
+        "points": 8.0,
+        "severity": "major",
+        "required": false,
+        "fail_case_on_violation": false,
+        "description": "Atropine for symptomatic bradycardia / AV block (inferior RCA)"
+      },
+      {
+        "id": "stemi.cath_lab_activation",
+        "axis": "action",
+        "matcher": "escalation",
+        "params": {
+          "target": "pci_transfer",
+          "within_s": 900
+        },
+        "points": 6.0,
+        "severity": "minor",
+        "required": false,
+        "fail_case_on_violation": false,
+        "description": "PCI-capable transfer arranged"
+      },
+      {
+        "id": "stemi.allergy_check",
+        "axis": "safety",
+        "matcher": "symptom_elicited",
+        "params": {
+          "symptom_id": "drug_allergy",
+          "within_s": 300
+        },
+        "points": 4.0,
+        "severity": "minor",
+        "required": false,
+        "fail_case_on_violation": false,
+        "description": "Allergy history elicited before aspirin"
+      }
+    ]
+  },
+  "provenance": {
+    "author": "content/ramesh-stemi-draft",
+    "clinical_reviewer": null,
+    "sources": [
+      "services/pratibimb/app/case_gen/seed_corpus.json#Ramesh Kale"
+    ],
+    "guideline_versions": [],
+    "reviewed_at": null,
+    "content_hash": "80e29c6e203589f222c21115f4e85d22187de5524ea72c88b2235cd3f847df57"
+  }
+}

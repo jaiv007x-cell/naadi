@@ -35,6 +35,18 @@ def summative_ledger_rows() -> list[dict[str, Any]]:
     return list(_LEDGER)
 
 
+def summative_eligible_rows() -> list[dict[str, Any]]:
+    """Grade reads use an explicit allowlist, even if storage is contaminated."""
+    from services.pratibimb.samvaad.evidence_class import SUMMATIVE_ELIGIBLE_CLASSES
+
+    return [
+        row
+        for row in _LEDGER
+        if row.get("assessment_kind", "summative") == "summative"
+        and row.get("evidence_class") in SUMMATIVE_ELIGIBLE_CLASSES
+    ]
+
+
 def insert_summative_evidence(
     *,
     tenant_id: str,
@@ -70,6 +82,7 @@ def insert_summative_evidence(
     _LEDGER.append(
         {
             "evidence_id": row.evidence_id,
+            "assessment_kind": "summative",
             "tenant_id": row.tenant_id,
             "transcript_digest": row.transcript_digest,
             "grader_version": row.grader_version,

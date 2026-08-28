@@ -12,12 +12,15 @@ CREATE TABLE IF NOT EXISTS samvaad_summative_evidence (
     grader_version              TEXT        NOT NULL,
     rubric_schema_version       TEXT        NOT NULL,
     artifact_schema_version     TEXT        NOT NULL,
+    assessment_kind             TEXT        NOT NULL DEFAULT 'summative',
     evidence_class              TEXT        NOT NULL,
     framework_citation_anchor   TEXT,
     competency_hits_json        TEXT        NOT NULL DEFAULT '[]',
     captured_at_utc             TIMESTAMPTZ NOT NULL,
-    CONSTRAINT ck_samvaad_evidence_class
-        CHECK (evidence_class IN ('machine_sim', 'preceptor_attested', 'patient_reported'))
+    CONSTRAINT ck_samvaad_summative_assessment_kind
+        CHECK (assessment_kind = 'summative'),
+    CONSTRAINT ck_samvaad_summative_evidence_class
+        CHECK (evidence_class IN ('machine_sim', 'preceptor_attested'))
 );
 
 CREATE INDEX IF NOT EXISTS ix_samvaad_summative_tenant_captured

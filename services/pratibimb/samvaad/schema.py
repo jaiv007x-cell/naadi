@@ -50,6 +50,9 @@ def validate_summative_payload(payload: dict[str, Any]) -> None:
 def validate_reference_rubric(rubric: dict[str, Any]) -> None:
     """Dry-run validate a SAMVAAD reference / corpus rubric dict."""
     validate_summative_payload(rubric)
+    from services.pratibimb.samvaad.runtime import validate_matcher_params
+
+    validate_matcher_params(rubric.get("params") or {})
 
     domain = rubric.get("domain")
     if domain not in DOMAINS:

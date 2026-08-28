@@ -3,10 +3,15 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, TYPE_CHECKING
 from uuid import uuid4
 
 from services.pratibimb.samvaad.evidence_class import assert_known_evidence_class
+
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
+
+    from services.pratibimb.samvaad.dhaara_projection import ProjectionSink
 
 _STORE: list[dict[str, Any]] = []
 
@@ -30,14 +35,22 @@ def formative_store() -> list[dict[str, Any]]:
     return list(_STORE)
 
 
-def capture_formative(payload: dict[str, Any]) -> FormativeEvidenceRecord:
+def capture_formative(
+    payload: dict[str, Any],
+    *,
+    tenant_id: str | None = None,
+    session: "Session | None" = None,
+    projection_sink: "ProjectionSink | None" = None,
+    evidence_id: str | None = None,
+    captured_at_utc: datetime | None = None,
+) -> FormativeEvidenceRecord:
     evidence_class = payload["evidence_class"]
     assert_known_evidence_class(evidence_class)
     rec = FormativeEvidenceRecord(
-        evidence_id=str(uuid4()),
+        evidence_id=evidence_id or str(uuid4()),
         evidence_class=evidence_class,
         payload=dict(payload),
-        captured_at_utc=datetime.now(timezone.utc),
+        captured_at_utc=captured_at_utc or datetime.now(timezone.utc),
     )
     _STORE.append(
         {
@@ -51,5 +64,10 @@ def capture_formative(payload: dict[str, Any]) -> FormativeEvidenceRecord:
     if provenance <= set(payload):
         from services.pratibimb.samvaad.formative_projector import insert_formative_evidence
 
-        insert_formative_evidence(rec)
+        insert_formative_evidence(
+            rec,
+            tenant_id=tenant_id,
+            session=session,
+            projection_sink=projection_sink,
+        )
     return rec

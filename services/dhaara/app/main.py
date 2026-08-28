@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from services.dhaara.app.freshness_store import FreshnessStore
@@ -17,6 +17,7 @@ _competency_graph: dict[str, dict[str, float]] = {}
 
 # Dhaara Freshness v1 — derived exclusively from SkillFreshnessSnapshot
 _freshness_store = FreshnessStore()
+_freshness_idempotency: dict[str, CompetencyState] = {}
 
 
 class CompetencyUpdateRequest(BaseModel):
@@ -65,9 +66,18 @@ async def get_competency(learner_id: str):
 
 
 @app.post("/v1/freshness/ingest")
-async def ingest_freshness(snapshot: SkillFreshnessSnapshot) -> CompetencyState:
+async def ingest_freshness(
+    snapshot: SkillFreshnessSnapshot,
+    request: Request,
+) -> CompetencyState:
     """Accept a single SkillFreshnessSnapshot; update competency state projection."""
-    return _freshness_store.ingest(snapshot)
+    idempotency_key = request.headers.get("Idempotency-Key")
+    if idempotency_key and idempotency_key in _freshness_idempotency:
+        return _freshness_idempotency[idempotency_key]
+    state = _freshness_store.ingest(snapshot)
+    if idempotency_key:
+        _freshness_idempotency[idempotency_key] = state
+    return state
 
 
 @app.post("/v1/freshness/ingest/batch")

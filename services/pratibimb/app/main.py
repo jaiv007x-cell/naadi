@@ -44,6 +44,10 @@ from services.pratibimb.ledger.corpus_reconciler import CorpusReconcilerDriver
 from services.pratibimb.ledger_read.routes import router as ledger_read_router
 from services.pratibimb.credentials.routes import router as credentials_router
 from services.pratibimb.regrade.routes import router as regrade_router
+from services.pratibimb.samvaad.dhaara_projection import (
+    get_production_projection_sink,
+)
+from services.pratibimb.samvaad.reconciler import SamvaadProjectionReconciler
 from services.pratibimb.samvaad.routes import router as samvaad_router
 from services.pratibimb.arp.routes import router as arp_router
 
@@ -51,6 +55,7 @@ manager = SessionManager()
 dhaara = DhaaraClient()
 worker = EventWorker(manager, dhaara)
 _corpus_reconciler: CorpusReconcilerDriver | None = None
+_samvaad_reconciler: SamvaadProjectionReconciler | None = None
 _summative_guard: SummativeRestrictionGuard | None = None
 
 
@@ -68,7 +73,7 @@ def reset_summative_guard_for_tests(guard: SummativeRestrictionGuard | None = No
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global _corpus_reconciler
+    global _corpus_reconciler, _samvaad_reconciler
     setup_logging(settings.log_level)
     validate_ledger_startup()
     validate_consent_startup()
@@ -77,8 +82,14 @@ async def lifespan(app: FastAPI):
     validate_authoring_startup()
     _corpus_reconciler = CorpusReconcilerDriver()
     await _corpus_reconciler.start()
+    _samvaad_reconciler = SamvaadProjectionReconciler(
+        get_production_projection_sink()
+    )
+    await _samvaad_reconciler.start()
     await worker.start()
     yield
+    await _samvaad_reconciler.stop()
+    _samvaad_reconciler = None
     await _corpus_reconciler.stop()
     _corpus_reconciler = None
     await worker.stop()

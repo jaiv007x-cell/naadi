@@ -168,6 +168,12 @@ def test_g_b_verify_assist_endpoint_agrees_with_offline_verdict(
     )
     assert rev.status_code == 200
     status_rev = rev.json()["status_list"]
+    assert status_rev["status_list_schema_version"] == "status_list.v2"
+    assert status_rev["entries"]
+    assert all(
+        e.get("identifier_kind") == "credential" and e.get("identifier_id")
+        for e in status_rev["entries"]
+    )
     with pytest.raises(VerifyReject, match="credential_revoked"):
         offline_verify(cred, status_rev, keyring=_keyring(), now=NOW)
     assist_rej = slice4_client.post(
@@ -473,7 +479,15 @@ def test_g_b_15_status_list_pagination_cursor_and_cap(slice4_client, monkeypatch
 
     engine = get_engine()
     SessionLocal = sessionmaker(bind=engine, expire_on_commit=False, future=True)
-    svc = CredentialStatusService(SessionLocal, audit)
+    # Empty snapshots collide if signed_at is identical — advance clock so
+    # envelope bytes (and pagination content) are distinguishable.
+    tick = {"n": 0}
+
+    def _now():
+        tick["n"] += 1
+        return NOW + timedelta(seconds=tick["n"])
+
+    svc = CredentialStatusService(SessionLocal, audit, now=_now)
     with SessionLocal() as session:
         for _ in range(STATUS_LIST_PAGE_CAP + 2):
             svc._publish_snapshot(session, tenant_id=TENANT)
@@ -498,6 +512,8 @@ def test_g_b_15_status_list_pagination_cursor_and_cap(slice4_client, monkeypatch
     assert len(page2.json()["items"]) >= 1
     # Cursor advanced past first page's last snapshot
     assert page2.json()["items"][0] != body["items"][0]
+    # P1: mint path emits v2 with kind/id shape (empty list still stamped v2)
+    assert body["items"][0]["status_list_schema_version"] == "status_list.v2"
 
 
 def test_g_b_16_entry_minimization_no_session_or_evidence_ref():

@@ -272,9 +272,13 @@ See [`design/samvaad_a.md`](./design/samvaad_a.md). Migration **018** (`samvaad_
 
 **SAMVAAD.c** — **Fully countersigned** — Nirikshak registry merge, migration **021**, summative verify route, always-on emit. [`design/samvaad_c.md`](./design/samvaad_c.md). `pytest -m samvaad_c_acceptance` → **18/18** · SAMVAAD compose **54/54**. Ship: [`ops/samvaad_c_ship_checklist.md`](./ops/samvaad_c_ship_checklist.md).
 
-**SAMVAAD.d (next)** — Matcher params · I-S-13 capture (022) · time-on-task · runtime bias detector. [`design/samvaad_d.md`](./design/samvaad_d.md) — frozen scope, awaiting countersign.
+**SAMVAAD.d** — **Closed** — matcher params, I-S-13 capture (022), observability-only time-on-task, runtime bias detector. [`design/samvaad_d.md`](./design/samvaad_d.md). `pytest -m samvaad_d_acceptance` → **11/11** · prior compose **54/54** · SAMVAAD compose **65/65**.
 
-**SAMVAAD.e (queued)** — Dhaara event path + Postgres 021/022 projectors. [`design/samvaad_e.md`](./design/samvaad_e.md) — opens after `.d` close.
+**SAMVAAD.e** — **Closed** — Postgres 021/022 projectors, migration **023**
+tenant-scoped dedup, deterministic Dhaara event/reconciliation path, and
+bounded Prometheus metrics. [`design/samvaad_e.md`](./design/samvaad_e.md).
+`pytest -m samvaad_e_acceptance` → **14/14** · prior compose **65/65** ·
+SAMVAAD compose **79/79**.
 
 **v0.1 — Phase 1** — A, B, H + cohort time-on-task instrumentation.
 

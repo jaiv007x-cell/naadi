@@ -1,9 +1,8 @@
 """SAMVAAD.c — verify orchestration (emit-always, flag-gated SoT write)."""
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
-from services.pratibimb.audit.errors import AuditWriteError
 from services.pratibimb.samvaad.config import SAMVAAD_LIVE_WRITE_ALLOW, SAMVAAD_VERIFIER_LIVE_EMIT
 from services.pratibimb.samvaad.evidence_class import assert_summative_evidence_class, summative_eligible
 from services.pratibimb.samvaad.formative import capture_formative
@@ -17,6 +16,11 @@ from services.pratibimb.samvaad.verifier_emit import (
     B_STUB_EMIT_PARAM_KEYS,
     emit_samvaad_verifier_audit,
 )
+
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
+
+    from services.pratibimb.samvaad.dhaara_projection import ProjectionSink
 
 
 def _summative_would_mutate(*, dry_run: bool, evidence_class: str) -> bool:
@@ -36,6 +40,11 @@ def verify_samvaad(
     tenant_id: str = "test-tenant",
     sink: Any | None = None,
     fail_closed: bool | None = None,
+    ledger_session: "Session | None" = None,
+    projection_sink: "ProjectionSink | None" = None,
+    learner_pseudo_id: str | None = None,
+    session_anchor: str | None = None,
+    freshness_inputs: dict[str, dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """
     Shape A + pin 2: always emit; flag gates live_emit stamp and SoT INSERT.
@@ -43,6 +52,12 @@ def verify_samvaad(
     assessment_kind = str(body.get("assessment_kind", "summative"))
     dry_run = True if "dry_run" not in body else bool(body["dry_run"])
     payload = dict(body.get("payload") or body.get("evidence") or {})
+    if learner_pseudo_id is not None:
+        payload.setdefault("learner_pseudo_id", learner_pseudo_id)
+    if session_anchor is not None:
+        payload.setdefault("session_anchor", session_anchor)
+    if freshness_inputs is not None:
+        payload.setdefault("freshness_inputs", freshness_inputs)
     evidence_class = str(payload.get("evidence_class", ""))
 
     would_mutate = _summative_would_mutate(dry_run=dry_run, evidence_class=evidence_class)
@@ -68,7 +83,12 @@ def verify_samvaad(
     )
 
     if assessment_kind == "formative":
-        rec = capture_formative(payload)
+        rec = capture_formative(
+            payload,
+            tenant_id=tenant_id,
+            session=ledger_session,
+            projection_sink=projection_sink,
+        )
         return {
             "status": "ok",
             "assessment_kind": "formative",
@@ -86,7 +106,12 @@ def verify_samvaad(
         return {"status": "ok", "dry_run": False, "inserted": False, "live_write": False}
 
     record = capture_summative(payload)
-    row = insert_summative_evidence(tenant_id=tenant_id, record=record)
+    row = insert_summative_evidence(
+        tenant_id=tenant_id,
+        record=record,
+        session=ledger_session,
+        projection_sink=projection_sink,
+    )
     return {
         "status": "ok",
         "dry_run": False,

@@ -36,6 +36,8 @@ class SkillFreshnessSnapshot(BaseModel):
     source_session_ids: tuple[str, ...]
     source_replay_hash: str
     computed_at: datetime
+    evidence_class: Optional[str] = None
+    evidence_weight: Optional[float] = Field(default=None, ge=0.0)
 
 
 class CompetencyState(BaseModel):

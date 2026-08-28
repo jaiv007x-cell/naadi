@@ -6,12 +6,16 @@ from typing import Any
 
 from services.pratibimb.app.eval import nirikshak as nirikshak_mod
 from services.pratibimb.samvaad.nirikshak_matchers import SAMVAAD_MATCHERS
+from services.pratibimb.samvaad.runtime import validate_matcher_params
 
 
 @dataclass
 class SamvaadRubricHit:
     params: dict[str, Any]
     matcher: dict[str, Any]
+
+    def __post_init__(self) -> None:
+        validate_matcher_params(self.params)
 
 
 class SamvaadEvalHarness:

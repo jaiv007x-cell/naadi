@@ -1,0 +1,172 @@
+{
+  "schema_version": "2.0.0",
+  "identity": {
+    "case_id": "baby_aarav.neonatal_sepsis.eos.v1",
+    "version": "1.0.0-draft-persona",
+    "title": "Baby Aarav — early-onset neonatal sepsis (persona + physiology draft)",
+    "corpus_tier": "draft",
+    "assessment_mode": "practice"
+  },
+  "targeting": {
+    "roles": [
+      "gnm",
+      "anm"
+    ],
+    "competencies": [
+      "neonatal.sepsis",
+      "nursing.assessment",
+      "communication.tamil",
+      "emergency.triage"
+    ],
+    "difficulty": 0.58,
+    "prerequisites": []
+  },
+  "patient": {
+    "demographics": {
+      "name": "Baby Aarav",
+      "age": 0,
+      "age_days": 3,
+      "sex": "M",
+      "birth_weight_kg": 2.9,
+      "occupation": "neonate",
+      "state": "Tamil Nadu",
+      "city": "Chennai",
+      "native_language": "ta",
+      "education_years": 0,
+      "monthly_income_inr": 0
+    },
+    "language": "ta",
+    "voice_profile": "informant_meera_ta",
+    "literacy_years": 0,
+    "persona_notes": "Patient is non-verbal neonate. Interaction surface is informant Meera (26, first-time mother, school teacher, Tamil-primary/English-functional). Register: anxious but articulate; minimizes early ('maybe he is just sleepy?'). Wait-and-watch cultural beat: mother-in-law advised waiting till morning. Learner-facing proxy complaint (Roman transliteration): ta=\"Doctor, kuzhandhai saapadala, udal soodu maathiri irukku.\"; hi=\"Doctor, bachcha doodh nahi le raha, shareer garam lag raha hai.\" Code-switch English clinical terms when clinician uses them."
+  },
+  "clinical_truth": {
+    "primary_diagnosis": "Early-onset neonatal sepsis (suspected)",
+    "icd10": "P36.9",
+    "differentials": [
+      "dehydration",
+      "transient tachypnea of newborn",
+      "congenital heart disease",
+      "metabolic disorder"
+    ],
+    "symptoms_present": [
+      "poor feeding",
+      "refused last two feeds",
+      "lethargy",
+      "tachypnea",
+      "fever"
+    ],
+    "findings_present": [
+      "axillary temp 38.6C",
+      "RR 68 with mild subcostal retractions",
+      "HR 172",
+      "CRT 4 seconds",
+      "anterior fontanelle full not tense",
+      "slightly mottled extremities",
+      "cord stump clean",
+      "no rash"
+    ],
+    "absent_findings": [
+      "umbilical erythema",
+      "petechiae",
+      "tense fontanelle at T0"
+    ],
+    "allergies": [],
+    "medications": [],
+    "onset_minutes_ago": 360
+  },
+  "environment": {
+    "setting": "private_nursing_home_er",
+    "resources": [
+      "warmer",
+      "glucometer",
+      "cbc",
+      "crp",
+      "blood_culture",
+      "ampicillin",
+      "gentamicin",
+      "cefotaxime",
+      "lp_kit"
+    ],
+    "distractors": [
+      "mother-in-law said babies run warm wait till morning",
+      "mother minimizes severity early"
+    ],
+    "difficulty_parameters": {
+      "time_pressure_seconds": 1200
+    }
+  },
+  "physiology": {
+    "engine_version": "0.2.0",
+    "initial_vitals": {
+      "hr": 172.0,
+      "sbp": 62.0,
+      "dbp": 38.0,
+      "spo2": 94.0,
+      "rr": 68.0,
+      "temp_c": 38.6
+    },
+    "deterioration_rules": [
+      "vitals:presentation=neonatal_sepsis_tachypnea",
+      "vitals:initial_crt_s=4",
+      "vitals:fontanelle=full_not_tense_at_t0",
+      "vitals:untreated_temp_flip_hypothermia_after_s=2700:temp_c=36.1",
+      "vitals:untreated_rr_rise_after_s=600:+12",
+      "vitals:branch=apneic_pauses_after_s=900:rr_pattern=apnea",
+      "vitals:untreated_hr_rise_after_s=480:+18",
+      "vitals:branch=neonatal_bradycardia_peri_arrest_after_s=1200:hr_floor=80",
+      "vitals:untreated_crt_worsen_after_s=600:crt_s=5",
+      "vitals:branch=mottling_central_after_s=900:mottling=central",
+      "vitals:branch=pulse_pressure_narrow_after_s=720:map_rise_limited",
+      "history:wet_diaper_timestamp_recedes_after_s=600:last_wet_h_ago=8",
+      "neuro:lethargy_progression_after_s=600: tone=decreased",
+      "neuro:branch=hypotonia_after_s=900:tone=floppy",
+      "neuro:branch=subtle_neonatal_seizure_after_s=1500:pattern=lip_smacking_cycling",
+      "neuro:fontanelle_tense_if_lp_deferred_after_s=1800:tense=true",
+      "metabolic:hypoglycemia_if_checked_at_t0:glucose_mg_dl=38",
+      "metabolic:glucose_correct_without_sepsis_tx=partial_credit_only",
+      "intervention:empiric_abx_amp_gent_within_window=stabilization_arc",
+      "intervention:fluid_bolus_10ml_kg_ns=correct_neonatal_dose",
+      "intervention:antipyretic_only_management=progression_continues",
+      "iatrogenic:fluid_bolus_20ml_kg=pulmonary_edema_signs",
+      "iatrogenic:gentamicin_without_weight_calc=dosing_error_flag",
+      "iatrogenic:lp_on_active_desaturation=decompensation_event",
+      "iatrogenic:warmth_neglect_during_workup=hypothermia_acceleration",
+      "red_flag:NEONATAL_SEPSIS"
+    ],
+    "pharmacology_profile": "neonatal_default"
+  },
+  "interaction": {
+    "allowed_disclosures": [
+      "poor feeding",
+      "refused last two feeds",
+      "feels warm",
+      "breathing fast",
+      "sleepy",
+      "mottled legs"
+    ],
+    "hidden_facts": [
+      "PROM 22 hours before delivery",
+      "single intrapartum ampicillin dose inadequate",
+      "no GBS screening",
+      "discharged at 24 hours from nursing home",
+      "mother does not know PROM or prophylaxis matter",
+      "mother-in-law advised wait till morning"
+    ],
+    "family_personas": [
+      "informant_mother_meera"
+    ],
+    "dialogue_constraints": []
+  },
+  "grading_blueprint": null,
+  "provenance": {
+    "author": "content/aarav-sepsis-draft",
+    "clinical_reviewer": null,
+    "sources": [],
+    "guideline_versions": [
+      "nnf-neonatal-sepsis@draft"
+    ],
+    "reviewed_at": null,
+    "content_hash": "75930a37056f0569de35930cfd875f9cf482aaea6cd6618e113cc3cfa4ccb4ff"
+  }
+}

@@ -13,11 +13,17 @@ is held against this list.
 | **Signature (the door key)** | A **signed Ramesh** is **milestone one** of that pilot — not the invoice line |
 | **Licence pack** | Cases **#9–20** (19 firm + 1 optional after **#18 dropped**) — opens only after pilot **#8** carries `clinical_reviewer` + `reviewed_at` |
 
-Nothing in this document couples to the SAMVAAD three-PR merge chain (blocked on remote config until origin lands).
+Nothing in this document couples to the SAMVAAD three-PR merge chain.
 
 ---
 
 ## Case list — 19 firm + 1 optional (#18 dropped)
+
+**Canonicalization (2026-08-30):** No verbatim pre-reconstruction table exists on either
+side. The spine table below was built from Aug 28 case specs plus countersigned pins.
+**The committed table in this file is the canonical table** — authoritative as of
+commit **`e0f1fde`**. If a pre-reconstruction table ever surfaces, diff it against
+this doc; on conflict **this doc wins** (repo-and-memo-must-agree runs repo → memo).
 
 **Shape:** every case ships **3 required (fail-closed spine) + 6 supporting** rubric hits — the loop validated on Ramesh transfers to the whole pack without rubric-architecture rework.
 
@@ -69,7 +75,12 @@ Three classes cover the spine column without a new lobe:
 | **Ordered** | `sequence` matcher (`steps`, `max_gap_s`) | DKA fluids → insulin; neonatal resus PPV before compressions |
 
 **Verified against:** `services/pratibimb/app/eval/nirikshak.py` matchers `drug_not_given`, `sequence`.  
-**Residual gap before #7–#8 authoring:** order-level forbidden actions (e.g. `discharge_home`, `fasciotomy`) may need an `order_not_placed` matcher or flag-based equivalent — confirm during Ramesh walk, not at case #7 deadline surprise. SAMVAAD dialogue `min_occurrences_per_turn` is a separate layer.
+**Residual gap (#7–#8 authoring only — not Ramesh walk):** order-level forbidden
+actions (`discharge_home`, `fasciotomy`) need symmetric coverage. **Prefer
+`order_not_placed`** over flag-based equivalents — keeps Required/Forbidden/Ordered
+uniform across drug-level and order-level forbidden actions. Flag-based works but
+leaks case-specific logic into rubric plumbing. SAMVAAD dialogue
+`min_occurrences_per_turn` is a separate layer.
 
 ### 3. Physio envelope — licence cost flag
 
